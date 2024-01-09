@@ -4,5 +4,6 @@ lib
 lib64
 pyvenv.cfg
 .vscode
-venv/
+venv
+.env/
 **/__pycache__/
