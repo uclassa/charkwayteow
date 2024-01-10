@@ -17,7 +17,7 @@ class Member(models.Model):
     profile_image = models.ImageField()
 
 class Family(models.Model):
-    fam_name = models.CharField()
+    fam_name = models.CharField(max_length=30)
     points = models.IntegerField()
     # score_log = models.ForeignKey(to="ScoreLog")
 
