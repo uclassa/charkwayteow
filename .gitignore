@@ -1,9 +1,11 @@
-bin
-include
-lib
-lib64
-pyvenv.cfg
+# Misc
 .vscode
+
+# Virtual environment files
 venv
-.env/
+
+# Environment variable files
+.env
+
+# Pycache
 **/__pycache__/
