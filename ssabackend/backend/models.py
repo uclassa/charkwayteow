@@ -2,11 +2,12 @@ from django.db import models
 
 # Create your models here.
 class Event(models.Model):
+    title = models.CharField(max_length=30)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    participants = models.ManyToManyField(to="Member", related_name="events")
+    participants = models.ManyToManyField(to="Member", related_name="events", blank=True)
     venue = models.TextField()
-    description = models.TextField()
+    description = models.TextField(blank=True)
 
 class Member(models.Model):
     dob = models.DateField()
