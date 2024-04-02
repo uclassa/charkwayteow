@@ -12,7 +12,7 @@ class Event(models.Model):
     participants = models.ManyToManyField(to="Member", related_name="events", blank=True)
     venue = models.TextField()
     description = models.TextField(blank=True)
-    image = models.ImageField(blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to="event_images", storage=gd_storage)
     link = models.URLField(blank=True, null=True)
 
     def __str__(self):
