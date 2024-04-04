@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-from gdstorage.storage import GoogleDriveStorage
+from drive import ModifiedGoogleDriveStorage
 
-gd_storage = GoogleDriveStorage()
+gd_storage = ModifiedGoogleDriveStorage()
 
 # Create your models here.
 class Event(models.Model):
