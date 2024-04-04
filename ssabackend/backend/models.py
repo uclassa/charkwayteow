@@ -24,7 +24,7 @@ class Member(models.Model):
     email = models.EmailField(blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True)
     gender = models.CharField(max_length=10, blank=True)
-    family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, related_name="members")
+    family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
     profile_image = models.ImageField(blank=True, null=True, upload_to="profile_images", storage=gd_storage)
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
 

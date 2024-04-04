@@ -17,7 +17,7 @@ class EventSerializer(serializers.ModelSerializer):
 class EventPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        exclude = ('participants',)
+        exclude = ('id', 'participants')
 
 
 class FamilySerializer(serializers.ModelSerializer):
