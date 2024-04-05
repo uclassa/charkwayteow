@@ -12,7 +12,7 @@ class Event(models.Model):
     participants = models.ManyToManyField(to="Member", related_name="events", blank=True)
     venue = models.TextField()
     description = models.TextField(blank=True)
-    image_url = models.URLField(blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True, verbose_name="Image url (do not edit)")
     image = models.ImageField(blank=True, null=True, upload_to="event_images", storage=gd_storage)
     link = models.URLField(blank=True, null=True)
 
@@ -52,7 +52,7 @@ class Member(models.Model):
     phone = models.CharField(max_length=15, blank=True)
     gender = models.CharField(max_length=10, blank=True)
     family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
-    profile_image_url = models.URLField(blank=True, null=True)
+    profile_image_url = models.URLField(blank=True, null=True, verbose_name="Profile image url (do not edit)")
     profile_image = models.ImageField(blank=True, null=True, upload_to="profile_images", storage=gd_storage)
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
 
