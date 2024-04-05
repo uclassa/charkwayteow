@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Event, Family, Member
 
-
 class EventSerializer(serializers.ModelSerializer):
     participants = serializers.SlugRelatedField(
         many=True,
@@ -12,18 +11,19 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
-        read_only_fields = ('image_url',)
+        read_only_fields = ('image_id',)
 
 
 class EventPublicSerializer(serializers.ModelSerializer):
     # This is the read only serializer for the website and telebot
     # The image field pulls from the cached url on the model so google drive storage is not called
     # Otherwise api calls will be very very slowwwwwwww
-    image = serializers.URLField(source='image_url')
+    image = serializers.CharField(source='image_id')
 
     class Meta:
         model = Event
         fields = ('title', 'start_date', 'end_date', 'venue', 'description', 'image', 'link')
+        read_only_fields = fields
 
 
 class FamilySerializer(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = '__all__'
-        read_only_fields = ('profile_image_url',)
+        read_only_fields = ('image_id',)
 
 
 '''

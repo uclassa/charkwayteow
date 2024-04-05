@@ -1,8 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import User
-from .drive import ModifiedGoogleDriveStorage
+from gdstorage.storage import GoogleDriveStorage
 
-gd_storage = ModifiedGoogleDriveStorage()    
+gd_storage = GoogleDriveStorage()
+
+def get_image_id(url):
+    suffix = '&export=download'
+    prefix = 'id='
+    
+    start_idx = url.find(prefix)
+    if start_idx is None:
+        start_idx = 0
+    else:
+        start_idx += len(prefix)
+    
+    end_idx = url.find(suffix)
+    if end_idx is None:
+        end_idx = len(id)
+    
+    return url[start_idx:end_idx]
 
 # Create your models here.
 class Event(models.Model):
@@ -12,34 +28,33 @@ class Event(models.Model):
     participants = models.ManyToManyField(to="Member", related_name="events", blank=True)
     venue = models.TextField()
     description = models.TextField(blank=True)
-    image_url = models.URLField(blank=True, null=True, verbose_name="Image url (do not edit)")
+    image_id = models.CharField(blank=True, null=True, verbose_name="Image id (do not edit)")
     image = models.ImageField(blank=True, null=True, upload_to="event_images", storage=gd_storage)
     link = models.URLField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # Check if the instance is being updated
-        if self.pk:
-            try:
-                # Retrieve the previous value of the image field
-                prev_instance = Event.objects.get(pk=self.pk)
-                prev_image = prev_instance.image
-            except Event.DoesNotExist:
-                prev_image = None
+        try: # Check if the instance is being updated
+            prev_image = Event.objects.get(pk=self.pk).image
+        except Event.DoesNotExist: # If the instance is being created, set the previous image to None
+            prev_image = None
 
-        # Call the parent class's save method
         super().save(*args, **kwargs)
 
-        # Check if the image field has been updated or cleared
         if self.image != prev_image:
-            if self.image:
-                # Generate the URL of the image based on its path
-                # Update the image_url field with the URL
-                self.image_url = self.image.url
-            else:
-                # If the image field has been cleared, clear the image_url field as well
-                self.image_url = None
-            # Save the model again to update the image_url field
-            super().save(update_fields=['image_url'])
+            try: # Generate the id of the image
+                self.image_id = get_image_id(self.image.url)
+            except ValueError: # If the image field has been cleared, clear the image_id field as well
+                self.image_id = None
+            super().save(update_fields=['image_id'])
+
+    # def save(self, *args, **kwargs): # Only for updating the image_url field
+    #     try:
+    #         prev_instance = Event.objects.get(pk=self.pk)
+    #         self.image_id = get_image_id(prev_instance.image.url)
+    #     except:
+    #         pass
+    #     finally:
+    #         super().save(*args, **kwargs)
 
 
     def __str__(self):
@@ -52,34 +67,24 @@ class Member(models.Model):
     phone = models.CharField(max_length=15, blank=True)
     gender = models.CharField(max_length=10, blank=True)
     family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
-    profile_image_url = models.URLField(blank=True, null=True, verbose_name="Profile image url (do not edit)")
-    profile_image = models.ImageField(blank=True, null=True, upload_to="profile_images", storage=gd_storage)
+    image_id = models.CharField(blank=True, null=True, verbose_name="Profile image id (do not edit)")
+    image = models.ImageField(blank=True, null=True, upload_to="profile_images", storage=gd_storage)
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # Check if the instance is being updated
-        if self.pk:
-            try:
-                # Retrieve the previous value of the image field
-                prev_instance = Member.objects.get(pk=self.pk)
-                prev_image = prev_instance.image
-            except Member.DoesNotExist:
-                prev_image = None
+        try: # Check if the instance is being updated
+            prev_image = Member.objects.get(pk=self.pk).image
+        except Member.DoesNotExist: # If the instance is being created, set the previous image to None
+            prev_image = None
 
-        # Call the parent class's save method
         super().save(*args, **kwargs)
 
-        # Check if the image field has been updated or cleared
         if self.image != prev_image:
-            if self.image:
-                # Generate the URL of the image based on its path
-                # Update the image_url field with the URL
-                self.profile_image_url = self.image.url
-            else:
-                # If the image field has been cleared, clear the image_url field as well
-                self.image_url = None
-            # Save the model again to update the image_url field
-            super().save(update_fields=['profile_image_url'])
+            try: # Generate the id of the image
+                self.image_id = get_image_id(self.image.url)
+            except ValueError: # If the image field has been cleared, clear the image_id field as well
+                self.image_id = None
+            super().save(update_fields=['image_id'])
 
     def __str__(self):
         return self.name
