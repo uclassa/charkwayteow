@@ -38,6 +38,12 @@ class Event(models.Model):
         except Event.DoesNotExist: # If the instance is being created, set the previous image to None
             prev_image = None
 
+        if self.image != prev_image:
+            try: # Delete the old image
+                prev_image.delete(save=False)
+            except:
+                pass
+
         super().save(*args, **kwargs)
 
         if self.image != prev_image:
