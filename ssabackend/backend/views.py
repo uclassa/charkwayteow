@@ -1,10 +1,18 @@
 from rest_framework import viewsets, permissions
 from backend.serializers import EventSerializer, EventPublicSerializer, FamilySerializer, MemberSerializer
 from backend.models import Event, Family, Member
+from typing import Optional
 
-# Create your views here.
+import environ
+env = environ.Env(
+    API_KEY=(str, None)
+)
+
 
 class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    Permission class to allow read-only access to non-admins
+    """
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -12,9 +20,41 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return request.user.is_staff
 
 
-# Event is read-only for non-admins
-# Participants invisible to non-admins
+class HasAPIAccess(permissions.BasePermission):
+    """
+    Permission class to restrict access to the API to only those with the correct API key.
+    Key needs to be regenerated manually if compromised.
+    """
+    keyword = "api-key"
+
+    def get_key(self, request) -> Optional[str]:
+        """
+        Get the API key from the request, if it exists
+        """
+        authorization = request.META.get("HTTP_AUTHORIZATION", "")
+
+        if not authorization:
+            return None
+
+        keyword, found, key = authorization.partition(" ")
+        if not found:
+            return None
+
+        if keyword.lower() != self.keyword.lower():
+            return None
+        
+        return key
+
+    def has_permission(self, request, view):
+        key = self.get_key(request)
+
+        return key == env("API_KEY")
+
+
 class EventViewSet(viewsets.ModelViewSet):
+    """
+    Event viewset. Read-only and participants are not visible for non-admins
+    """
     queryset = Event.objects.all()
     permission_classes = [IsAdminOrReadOnly]
 
@@ -22,23 +62,20 @@ class EventViewSet(viewsets.ModelViewSet):
         return EventSerializer if self.request.user.is_staff else EventPublicSerializer
 
 
-# Only admins can view families and list members
 class FamilyViewSet(viewsets.ModelViewSet):
+    """
+    Family viewset. Admin only
+    TODO: Make this into a read only serializer without members for the telebot
+    """
     queryset = Family.objects.all()
     serializer_class = FamilySerializer
     permission_classes = [permissions.IsAdminUser]
 
 
-# User has only permission for their own member object
 class MemberViewSet(viewsets.ModelViewSet):
+    """
+    Member viewset. Admin only
+    """
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
     permission_classes = [permissions.IsAdminUser]
-
-
-"""
-TODO: 
-- Endpoints for user rsvp to event (add/remove me from event)
-- me endpoint (get user and related profile info, update profile info)
-- creating user and associate with member on first login
-"""

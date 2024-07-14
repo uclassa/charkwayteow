@@ -1,7 +1,12 @@
 from rest_framework import serializers
 from .models import Event, Family, Member
 
+
 class EventSerializer(serializers.ModelSerializer):
+    """
+    Event serializer for admin use
+    Honestly not really needed anymore since we're now using django admin
+    """
     participants = serializers.SlugRelatedField(
         many=True,
         queryset=Member.objects.all(),
@@ -15,9 +20,11 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class EventPublicSerializer(serializers.ModelSerializer):
-    # This is the read only serializer for the website and telebot
-    # The image field pulls from the cached url on the model so google drive storage is not called
-    # Otherwise api calls will be very very slowwwwwwww
+    """
+    This is the read only serializer for the website and telebot
+    The image field pulls from the cached url on the model so google drive storage is not called
+    Otherwise api calls will be very very slowwwwwwww
+    """
     image = serializers.CharField(source='image_id')
 
     class Meta:
@@ -27,6 +34,9 @@ class EventPublicSerializer(serializers.ModelSerializer):
 
 
 class FamilySerializer(serializers.ModelSerializer):
+    """
+    TODO: Make this into a read only serializer without members for the telebot
+    """
     members = serializers.SlugRelatedField(
         many=True,
         queryset=Member.objects.all(),
@@ -39,6 +49,10 @@ class FamilySerializer(serializers.ModelSerializer):
 
 
 class MemberSerializer(serializers.ModelSerializer):
+    """
+    Member serializer for admin use
+    Also not really needed anymore since we're now using django admin
+    """
     events = serializers.SlugRelatedField(
         many=True,
         queryset=Event.objects.all(),
@@ -57,5 +71,8 @@ class MemberSerializer(serializers.ModelSerializer):
 
 
 '''
-TODO: Since the only editable data by users is their profile, only the member serializer needs to be modified to output the image url but take in an image. Cross that bridge when we get there.
+TODO: Since the only editable data by users is their profile,
+only the member serializer needs to be modified to output the image url but take in an image.
+Cross that bridge when we get there.
+EDIT: We're not going to get there. We're using django admin now.
 '''
