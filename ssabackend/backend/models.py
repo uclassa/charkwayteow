@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from gdstorage.storage import GoogleDriveStorage
 
+
+__all__ = ['Event', 'Member', 'Family', 'PhotoSubmission']
+
 gd_storage = GoogleDriveStorage()
 
 def _get_image_id(url):
@@ -85,6 +88,8 @@ class Member(CachedImageModel):
     name = models.CharField(max_length=30, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True, unique=True)
+    telegram_username = models.CharField(max_length=30, blank=True, null=True, unique=True)
+    telegram_id = models.CharField(max_length=30, blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True)
     gender = models.CharField(max_length=10, blank=True)
     family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
@@ -95,14 +100,54 @@ class Member(CachedImageModel):
 
 
 class Family(models.Model):
+    """
+    Family model
+    """
     fam_name = models.CharField(max_length=30)
-    points = models.IntegerField(default=0)
+    points = models.FloatField(default=0)
     # score_log = models.ForeignKey(to="ScoreLog")
 
     def __str__(self):
         return self.fam_name
+    
 
-# class ScoreLog(models.Model):
-#     date_uploaded = models.DateTimeField()
-#     result = models.TextField()
-#     score = models.IntegerField()
+class PhotoSubmission(CachedImageModel):
+    """
+    Model for photo submissions
+    """
+    date_uploaded = models.DateTimeField(auto_now_add=True)
+    family = models.ForeignKey(to="Family", on_delete=models.CASCADE, null=True, blank=True, related_name="photo_submissions")
+    score = models.FloatField(default=0)
+    member = models.ForeignKey(to="Member", on_delete=models.DO_NOTHING, null=True, blank=True, related_name="photo_submissions")
+    description = models.TextField(blank=True)
+    number_of_people = models.IntegerField(default=0)
+
+    def _calculate_score(self) -> int:
+        """
+        Calculate the score of the photo submission
+        """
+        score = 0
+        if self.description.lower() == "on-campus":
+            score += 10
+        elif self.description.lower() == "off-campus":
+            score += 20
+        
+        if self.number_of_people > 3:
+            score += self.number_of_people * 5 * 1.5
+        else:
+            score += self.number_of_people * 5
+        self.score = score
+
+
+    def save(self, *args, **kwargs):
+        """
+        Overridden save method. This handles the calculation of the score and populating of family field.
+        """
+        # Calculate the score
+        self._calculate_score()
+        
+        # Set the family field
+        self.family = self.member.family
+
+        # Call the parent save method
+        super().save(*args, **kwargs)

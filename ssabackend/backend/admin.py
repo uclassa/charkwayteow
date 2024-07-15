@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from import_export.admin import ImportExportModelAdmin
-from .models import Event, Member, Family
+from . import models as m
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
 
@@ -11,7 +11,7 @@ class FamilyForm(forms.ModelForm):
     """
     # Reverse relation to members
     members = forms.ModelMultipleChoiceField(
-        queryset=Member.objects.all(),
+        queryset=m.Member.objects.all(),
         required=False,
         widget=FilteredSelectMultiple(
             verbose_name='Members',
@@ -20,7 +20,7 @@ class FamilyForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Family
+        model = m.Family
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
@@ -74,8 +74,8 @@ class MemberAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     Field order defined in the fields attribute.
     """
     search_fields = ('name',)
-    list_display = ('name', 'email', 'family')
-    fields = ('name', 'dob', 'email', 'phone', 'gender', 'family', 'user', 'image', 'image_id')
+    list_display = ('name', 'telegram_username', 'email', 'family')
+    fields = ('name', 'dob', 'email', 'telegram_username', 'telegram_id', 'phone', 'gender', 'family', 'user', 'image', 'image_id')
 
 
 class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
@@ -85,6 +85,14 @@ class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     form = FamilyForm
 
 
-admin.site.register(Event, EventAdmin)
-admin.site.register(Member, MemberAdmin)
-admin.site.register(Family, FamilyAdmin)
+class PhotoSubmissionAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    """
+    Admin class for the PhotoSubmission model.
+    """
+    list_display = ('date_uploaded', 'image', 'member', 'family', 'score')
+
+
+admin.site.register(m.Event, EventAdmin)
+admin.site.register(m.Member, MemberAdmin)
+admin.site.register(m.Family, FamilyAdmin)
+admin.site.register(m.PhotoSubmission, PhotoSubmissionAdmin)

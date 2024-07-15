@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, Family, Member
+from . import models as m
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -9,12 +9,12 @@ class EventSerializer(serializers.ModelSerializer):
     """
     participants = serializers.SlugRelatedField(
         many=True,
-        queryset=Member.objects.all(),
+        queryset=m.Member.objects.all(),
         slug_field='name'
     )
 
     class Meta:
-        model = Event
+        model = m.Event
         fields = '__all__'
         read_only_fields = ('image_id',)
 
@@ -28,7 +28,7 @@ class EventPublicSerializer(serializers.ModelSerializer):
     image = serializers.CharField(source='image_id')
 
     class Meta:
-        model = Event
+        model = m.Event
         fields = ('title', 'start_date', 'end_date', 'venue', 'description', 'image', 'link')
         read_only_fields = fields
 
@@ -37,14 +37,9 @@ class FamilySerializer(serializers.ModelSerializer):
     """
     TODO: Make this into a read only serializer without members for the telebot
     """
-    members = serializers.SlugRelatedField(
-        many=True,
-        queryset=Member.objects.all(),
-        slug_field='name'
-    )
 
     class Meta:
-        model = Family
+        model = m.Family
         fields = '__all__'
 
 
@@ -55,24 +50,25 @@ class MemberSerializer(serializers.ModelSerializer):
     """
     events = serializers.SlugRelatedField(
         many=True,
-        queryset=Event.objects.all(),
+        queryset=m.Event.objects.all(),
         slug_field='title'
     )
 
     family = serializers.SlugRelatedField(
-        queryset=Family.objects.all(),
+        queryset=m.Family.objects.all(),
         slug_field='fam_name'
     )
     
     class Meta:
-        model = Member
+        model = m.Member
         fields = '__all__'
         read_only_fields = ('image_id',)
 
 
-'''
-TODO: Since the only editable data by users is their profile,
-only the member serializer needs to be modified to output the image url but take in an image.
-Cross that bridge when we get there.
-EDIT: We're not going to get there. We're using django admin now.
-'''
+class PhotoSubmissionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the photo submission model
+    """
+    class Meta:
+        model = m.PhotoSubmission
+        fields = ('member', 'description', 'number_of_people', 'image')

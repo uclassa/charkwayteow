@@ -1,6 +1,5 @@
-from rest_framework import viewsets, permissions
-from backend.serializers import EventSerializer, EventPublicSerializer, FamilySerializer, MemberSerializer
-from backend.models import Event, Family, Member
+from rest_framework import viewsets, permissions, mixins
+from . import serializers as s, models as m
 from typing import Optional
 
 import environ
@@ -27,7 +26,7 @@ class HasAPIAccess(permissions.BasePermission):
     """
     keyword = "api-key"
 
-    def get_key(self, request) -> Optional[str]:
+    def _get_key(self, request) -> Optional[str]:
         """
         Get the API key from the request, if it exists
         """
@@ -46,20 +45,18 @@ class HasAPIAccess(permissions.BasePermission):
         return key
 
     def has_permission(self, request, view):
-        key = self.get_key(request)
-
-        return key == env("API_KEY")
+        return self._get_key(request) == env("API_KEY")
 
 
 class EventViewSet(viewsets.ModelViewSet):
     """
     Event viewset. Read-only and participants are not visible for non-admins
     """
-    queryset = Event.objects.all()
+    queryset = m.Event.objects.all()
     permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
-        return EventSerializer if self.request.user.is_staff else EventPublicSerializer
+        return s.EventSerializer if self.request.user.is_staff else s.EventPublicSerializer
 
 
 class FamilyViewSet(viewsets.ModelViewSet):
@@ -67,15 +64,34 @@ class FamilyViewSet(viewsets.ModelViewSet):
     Family viewset. Admin only
     TODO: Make this into a read only serializer without members for the telebot
     """
-    queryset = Family.objects.all()
-    serializer_class = FamilySerializer
-    permission_classes = [permissions.IsAdminUser]
+    queryset = m.Family.objects.all()
+    serializer_class = s.FamilySerializer
 
 
-class MemberViewSet(viewsets.ModelViewSet):
+class MemberUsernameViewSet(viewsets.GenericViewSet,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin):
     """
-    Member viewset. Admin only
+    Member viewset for telebot. Lookup using telegram handle
     """
-    queryset = Member.objects.all()
-    serializer_class = MemberSerializer
-    permission_classes = [permissions.IsAdminUser]
+    queryset = m.Member.objects.all()
+    serializer_class = s.MemberSerializer
+    permission_classes = [HasAPIAccess]
+    lookup_field = "telegram_username"
+
+class MemberIDViewset(MemberUsernameViewSet):
+    """
+    Member viewset for telebot. Lookup using telegram id
+    It's not easy to get the telegram id, so the id is updated automatically the first time the user uses the bot
+    """
+    lookup_field = "telegram_id"
+
+
+class PhotoSubmissionViewSet(viewsets.GenericViewSet,
+                             mixins.CreateModelMixin):
+    """
+    Photo submission viewset for telebot.
+    """
+    queryset = m.PhotoSubmission.objects.all()
+    serializer_class = s.PhotoSubmissionSerializer
+    permission_classes = [HasAPIAccess]
