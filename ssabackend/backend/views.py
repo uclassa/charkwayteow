@@ -54,15 +54,13 @@ class EventViewSet(viewsets.ModelViewSet):
     """
     queryset = m.Event.objects.all()
     permission_classes = [IsAdminOrReadOnly]
-
-    def get_serializer_class(self):
-        return s.EventSerializer if self.request.user.is_staff else s.EventPublicSerializer
+    serializer_class = s.EventPublicSerializer
 
 
-class FamilyViewSet(viewsets.ModelViewSet):
+class FamilyViewSet(viewsets.GenericViewSet,
+                    mixins.ListModelMixin):
     """
-    Family viewset. Admin only
-    TODO: Make this into a read only serializer without members for the telebot
+    Family viewset. Leaderboard only
     """
     queryset = m.Family.objects.all()
     serializer_class = s.FamilySerializer
@@ -78,6 +76,7 @@ class MemberUsernameViewSet(viewsets.GenericViewSet,
     serializer_class = s.MemberSerializer
     permission_classes = [HasAPIAccess]
     lookup_field = "telegram_username"
+
 
 class MemberIDViewset(MemberUsernameViewSet):
     """

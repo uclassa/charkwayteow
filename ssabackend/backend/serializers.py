@@ -2,30 +2,13 @@ from rest_framework import serializers
 from . import models as m
 
 
-class EventSerializer(serializers.ModelSerializer):
-    """
-    Event serializer for admin use
-    Honestly not really needed anymore since we're now using django admin
-    """
-    participants = serializers.SlugRelatedField(
-        many=True,
-        queryset=m.Member.objects.all(),
-        slug_field='name'
-    )
-
-    class Meta:
-        model = m.Event
-        fields = '__all__'
-        read_only_fields = ('image_id',)
-
-
 class EventPublicSerializer(serializers.ModelSerializer):
     """
     This is the read only serializer for the website and telebot
     The image field pulls from the cached url on the model so google drive storage is not called
     Otherwise api calls will be very very slowwwwwwww
     """
-    image = serializers.CharField(source='image_id')
+    image = serializers.CharField(source='image_url')
 
     class Meta:
         model = m.Event
@@ -35,18 +18,18 @@ class EventPublicSerializer(serializers.ModelSerializer):
 
 class FamilySerializer(serializers.ModelSerializer):
     """
-    TODO: Make this into a read only serializer without members for the telebot
+    Read only serializer for the family model used for leaderboard
     """
 
     class Meta:
         model = m.Family
-        fields = '__all__'
+        fields = ('id', 'fam_name', 'points')
 
 
 class MemberSerializer(serializers.ModelSerializer):
     """
-    Member serializer for admin use
-    Also not really needed anymore since we're now using django admin
+    Member serializer
+    TODO: Implement proper image handling
     """
     events = serializers.SlugRelatedField(
         many=True,

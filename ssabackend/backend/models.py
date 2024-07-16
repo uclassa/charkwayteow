@@ -42,6 +42,12 @@ class CachedImageModel(models.Model):
 
     class Meta:
         abstract = True
+
+    @property
+    def image_url(self):
+        if self.image_id is None:
+            return None
+        return f"https://lh3.googleusercontent.com/u/0/d/{self.image_id}"
     
     def save(self, *args, **kwargs):
         """
@@ -104,8 +110,14 @@ class Family(models.Model):
     Family model
     """
     fam_name = models.CharField(max_length=30)
-    points = models.FloatField(default=0)
-    # score_log = models.ForeignKey(to="ScoreLog")
+
+    @property
+    def points(self):
+        """
+        Calculate the total points of the family
+        """
+        result = self.photo_submissions.aggregate(models.Sum('score'))['score__sum']
+        return result if result else 0
 
     def __str__(self):
         return self.fam_name

@@ -3,6 +3,8 @@ from django import forms
 from import_export.admin import ImportExportModelAdmin
 from . import models as m
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.utils.html import format_html
+from pprint import pp
 
 
 class FamilyForm(forms.ModelForm):
@@ -57,7 +59,31 @@ class FamilyForm(forms.ModelForm):
         return family
 
 
-class EventAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+@admin.display(description="Link to image")
+def show_image_url(obj):
+    """
+    Function to display the image url as a clickable link in the admin panel
+    """
+    if obj.image_url:
+        return format_html('<a href="{url}">{url}</a>', url=obj.image_url)
+    return "No image"
+
+
+class BaseAdmin(admin.ModelAdmin):
+    """
+    Base admin class for the Event and Member models.
+    Reorders the fields in the admin panel to have the image field at the bottom.
+    """
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if image := form.base_fields.pop('image', None):
+            form.base_fields['image'] = image
+        if image_id := form.base_fields.pop('image_id', None):
+            form.base_fields['image_id'] = image_id
+        return form
+
+
+class EventAdmin(ImportExportModelAdmin, BaseAdmin):
     """
     Admin class for the Event model.
     Field order defined in the fields attribute.
@@ -65,17 +91,19 @@ class EventAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     filter_horizontal = ('participants',)
     search_fields = ('title',)
     list_display = ('title', 'start_date', 'end_date', 'venue')
-    fields = ('title', 'start_date', 'end_date', 'venue', 'description', 'link', 'image', 'image_id', 'participants')
+    readonly_fields = (show_image_url,)
+    exclude = ('image_id',)
 
 
-class MemberAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class MemberAdmin(ImportExportModelAdmin, BaseAdmin):
     """
     Admin class for the Member model.
     Field order defined in the fields attribute.
     """
     search_fields = ('name',)
     list_display = ('name', 'telegram_username', 'email', 'family')
-    fields = ('name', 'dob', 'email', 'telegram_username', 'telegram_id', 'phone', 'gender', 'family', 'user', 'image', 'image_id')
+    readonly_fields = (show_image_url,)
+    exclude = ('image_id',)
 
 
 class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
@@ -83,13 +111,17 @@ class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     Admin class for the Family model.
     """
     form = FamilyForm
+    readonly_fields = ('points',)
+    list_display = ('fam_name', 'points')
 
 
-class PhotoSubmissionAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class PhotoSubmissionAdmin(ImportExportModelAdmin, BaseAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
     list_display = ('date_uploaded', 'image', 'member', 'family', 'score')
+    readonly_fields = (show_image_url,)
+    exclude = ('image_id',)
 
 
 admin.site.register(m.Event, EventAdmin)
