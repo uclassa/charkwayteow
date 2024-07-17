@@ -120,7 +120,7 @@ class PhotoSubmissionAdmin(ImportExportModelAdmin, BaseAdmin):
     Admin class for the PhotoSubmission model.
     """
     list_display = ('date_uploaded', 'image', 'member', 'family', 'score')
-    readonly_fields = (show_image_url,)
+    readonly_fields = (show_image_url, 'score')
     exclude = ('image_id',)
 
 
