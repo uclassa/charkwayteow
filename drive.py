@@ -1,6 +1,6 @@
 import os, json
 from gdstorage.storage import GoogleDriveStorage
-os.environ["DJANGO_SETTINGS_MODULE"] = "ssabackend.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "charkwayteow.settings"
 
 def main():
     s = GoogleDriveStorage()._drive_service

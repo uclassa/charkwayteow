@@ -9,6 +9,3 @@ venv
 
 # Pycache
 **/__pycache__/
-
-# Gdrive
-**/ssa-backend.json
