@@ -1,6 +1,6 @@
+from typing import Optional
 from rest_framework import viewsets, permissions, mixins
 from . import serializers as s, models as m
-from typing import Optional
 
 import environ
 env = environ.Env(
@@ -21,8 +21,10 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
 class HasAPIAccess(permissions.BasePermission):
     """
-    Permission class to restrict access to the API to only those with the correct API key.
-    Key needs to be regenerated manually if compromised.
+    Permission class for sensitive endpoints,
+    to lock it behind an API key.
+    Key needs to be regenerated manually if compromised,
+    server currently does not generate or store its own keys.
     """
     keyword = "api-key"
 
@@ -41,7 +43,7 @@ class HasAPIAccess(permissions.BasePermission):
 
         if keyword.lower() != self.keyword.lower():
             return None
-        
+
         return key
 
     def has_permission(self, request, view):
@@ -68,10 +70,10 @@ class FamilyViewSet(viewsets.GenericViewSet,
 
 
 class MemberUsernameViewSet(viewsets.GenericViewSet,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin):
+                            mixins.RetrieveModelMixin,
+                            mixins.UpdateModelMixin):
     """
-    Member viewset for telebot. Lookup using telegram handle
+    Member viewset for telebot. Lookup using telegram handle.
     """
     queryset = m.Member.objects.all()
     serializer_class = s.MemberSerializer
@@ -81,8 +83,7 @@ class MemberUsernameViewSet(viewsets.GenericViewSet,
 
 class MemberIDViewset(MemberUsernameViewSet):
     """
-    Member viewset for telebot. Lookup using telegram id
-    It's not easy to get the telegram id, so the id is updated automatically the first time the user uses the bot
+    Member viewset for telebot. Lookup using telegram id.
     """
     lookup_field = "telegram_id"
 

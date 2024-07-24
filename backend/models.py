@@ -7,28 +7,31 @@ __all__ = ['Event', 'Member', 'Family', 'PhotoSubmission']
 
 gd_storage = GoogleDriveStorage()
 
+
 def _get_image_id(url):
     """
     Strip the image id from the gdrive url of the image
     """
     suffix = '&export=download'
     prefix = 'id='
-    
+
     start_idx = url.find(prefix)
     if start_idx is None:
         start_idx = 0
     else:
         start_idx += len(prefix)
-    
+
     end_idx = url.find(suffix)
     if end_idx is None:
         end_idx = len(id)
-    
+
     return url[start_idx:end_idx]
+
 
 def _get_upload_path(instance, filename):
     """
-    Generate the upload path for the image. This method is used so each subclass of CachedImageModel has its own images folder in google drive
+    Generate the upload path for the image.
+    This method gives each subclass of CachedImageModel its own image folder in google drive
     """
     return f"{instance.__class__.__name__.lower()}_images/{filename}"
 
@@ -36,7 +39,7 @@ def _get_upload_path(instance, filename):
 class CachedImageModel(models.Model):
     """
     Abstract base class for models that have an image field
-    """    
+    """
     image_id = models.CharField(blank=True, null=True, verbose_name="Image id (do not edit)")
     image = models.ImageField(blank=True, null=True, upload_to=_get_upload_path, storage=gd_storage)
 
@@ -48,17 +51,18 @@ class CachedImageModel(models.Model):
         if self.image_id is None:
             return None
         return f"https://lh3.googleusercontent.com/u/0/d/{self.image_id}"
-    
+
     def save(self, *args, **kwargs):
         """
-        Overridden save method. This handles the saving of the image to google drive and the generation of the image_id field.
+        Overridden save method.
+        Handles the saving of the image to google drive and the generation of the image_id field.
         """
         # Check if we're updating or creating the an image
         try:
             prev_image = self.__class__.objects.get(pk=self.pk).image
         except self.__class__.DoesNotExist:
             prev_image = None
-        
+
         # Call the parent save method. This also saves the image to google drive
         super().save(*args, **kwargs)
 
@@ -122,7 +126,7 @@ class Family(models.Model):
 
     def __str__(self):
         return self.fam_name
-    
+
 
 class PhotoSubmission(CachedImageModel):
     """
@@ -144,21 +148,21 @@ class PhotoSubmission(CachedImageModel):
             score += 10
         elif self.description.lower() == "off-campus":
             score += 20
-        
+
         if self.number_of_people > 3:
             score += self.number_of_people * 5 * 1.5
         else:
             score += self.number_of_people * 5
         self.score = score
 
-
     def save(self, *args, **kwargs):
         """
-        Overridden save method. This handles the calculation of the score and populating of family field.
+        Overridden save method.
+        Handles the calculation of the score and populating of family field.
         """
         # Calculate the score
         self._calculate_score()
-        
+
         # Set the family field
         self.family = self.member.family
 
