@@ -41,7 +41,7 @@ class MemberSerializer(serializers.ModelSerializer):
         queryset=m.Family.objects.all(),
         slug_field='fam_name'
     )
-    
+
     class Meta:
         model = m.Member
         fields = '__all__'

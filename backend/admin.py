@@ -1,10 +1,9 @@
-from django.contrib import admin
 from django import forms
-from import_export.admin import ImportExportModelAdmin
-from . import models as m
+from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
-from pprint import pp
+from import_export.admin import ImportExportModelAdmin
+from . import models as m
 
 
 class FamilyForm(forms.ModelForm):
@@ -27,7 +26,8 @@ class FamilyForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         """
-        Override the init method to set the initial value of the members field to the current members of the family
+        Overridden init method.
+        Sets the initial value of the members field to the current members of the family.
         """
         super(FamilyForm, self).__init__(*args, **kwargs)
 
@@ -46,7 +46,8 @@ class FamilyForm(forms.ModelForm):
         5. Return the family instance
         """
         # Create the family instance.
-        # Setting commit to False will not save the instance to the database, and creates the self.save_m2m() method to allow deferred saving of the m2m data
+        # Setting commit to False will not save the instance to the database immediately
+        # but instead creates the self.save_m2m() method to allow deferred saving of the m2m data
         family = super(FamilyForm, self).save(commit=False)
 
         if commit:
