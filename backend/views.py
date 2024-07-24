@@ -64,6 +64,7 @@ class FamilyViewSet(viewsets.GenericViewSet,
     """
     queryset = m.Family.objects.all()
     serializer_class = s.FamilySerializer
+    permission_classes = [HasAPIAccess]
 
 
 class MemberUsernameViewSet(viewsets.GenericViewSet,
