@@ -7,6 +7,7 @@ First and foremost, clone the repo and cd into it:
 git clone https://github.com/uclassa/charkwayteow.git
 cd charkwayteow
 ```
+There are some environment variables needed to run the server. Ask the devs for the .env file and place it in the same directory as the .env.template file. Remember to never commit this file to the repository as the file essentially contains API keys to multiple services used by the server.
 
 ### Setting up the database
 To develop locally, you need to set up a PostgreSQL database and connect the django server to it.
