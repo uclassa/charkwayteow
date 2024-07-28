@@ -1,10 +1,9 @@
-from django.contrib import admin
 from django import forms
-from import_export.admin import ImportExportModelAdmin
-from . import models as m
+from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
-from pprint import pp
+from import_export.admin import ImportExportMixin
+from . import models as m
 
 
 class FamilyForm(forms.ModelForm):
@@ -83,7 +82,7 @@ class BaseAdmin(admin.ModelAdmin):
         return form
 
 
-class EventAdmin(ImportExportModelAdmin, BaseAdmin):
+class EventAdmin(ImportExportMixin, BaseAdmin):
     """
     Admin class for the Event model.
     Field order defined in the fields attribute.
@@ -95,7 +94,7 @@ class EventAdmin(ImportExportModelAdmin, BaseAdmin):
     exclude = ('image_id',)
 
 
-class MemberAdmin(ImportExportModelAdmin, BaseAdmin):
+class MemberAdmin(ImportExportMixin, BaseAdmin):
     """
     Admin class for the Member model.
     Field order defined in the fields attribute.
@@ -106,7 +105,7 @@ class MemberAdmin(ImportExportModelAdmin, BaseAdmin):
     exclude = ('image_id',)
 
 
-class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class FamilyAdmin(ImportExportMixin, admin.ModelAdmin):
     """
     Admin class for the Family model.
     """
@@ -115,7 +114,7 @@ class FamilyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ('fam_name', 'points')
 
 
-class PhotoSubmissionAdmin(ImportExportModelAdmin, BaseAdmin):
+class PhotoSubmissionAdmin(ImportExportMixin, BaseAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
