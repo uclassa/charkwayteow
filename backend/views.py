@@ -95,3 +95,12 @@ class PhotoSubmissionViewSet(viewsets.GenericViewSet,
     queryset = m.PhotoSubmission.objects.all()
     serializer_class = s.PhotoSubmissionSerializer
     permission_classes = [HasAPIAccess]
+
+
+class GroupChatViewSet(viewsets.ModelViewSet):
+    """
+    Group chat viewset for telebot.
+    """
+    queryset = m.GroupChat.objects.all()
+    serializer_class = s.GroupChatSerializer
+    permission_classes = [HasAPIAccess]

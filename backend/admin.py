@@ -68,7 +68,7 @@ def show_image_url(obj):
     return "No image"
 
 
-class BaseAdmin(admin.ModelAdmin):
+class ImageFieldReorderedAdmin(admin.ModelAdmin):
     """
     Base admin class for the Event and Member models.
     Reorders the fields in the admin panel to have the image field at the bottom.
@@ -82,7 +82,7 @@ class BaseAdmin(admin.ModelAdmin):
         return form
 
 
-class EventAdmin(ImportExportMixin, BaseAdmin):
+class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the Event model.
     Field order defined in the fields attribute.
@@ -94,7 +94,7 @@ class EventAdmin(ImportExportMixin, BaseAdmin):
     exclude = ('image_id',)
 
 
-class MemberAdmin(ImportExportMixin, BaseAdmin):
+class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the Member model.
     Field order defined in the fields attribute.
@@ -114,7 +114,7 @@ class FamilyAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('fam_name', 'points')
 
 
-class PhotoSubmissionAdmin(ImportExportMixin, BaseAdmin):
+class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
@@ -123,7 +123,15 @@ class PhotoSubmissionAdmin(ImportExportMixin, BaseAdmin):
     exclude = ('image_id',)
 
 
+class GroupChatAdmin(admin.ModelAdmin):
+    """
+    Admin class for the GroupChat model.
+    """
+    list_display = ('title', 'id')
+
+
 admin.site.register(m.Event, EventAdmin)
 admin.site.register(m.Member, MemberAdmin)
 admin.site.register(m.Family, FamilyAdmin)
 admin.site.register(m.PhotoSubmission, PhotoSubmissionAdmin)
+admin.site.register(m.GroupChat, GroupChatAdmin)

@@ -55,3 +55,12 @@ class PhotoSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.PhotoSubmission
         fields = ('member', 'description', 'number_of_people', 'image')
+
+
+class GroupChatSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the group chat model
+    """
+    class Meta:
+        model = m.GroupChat
+        fields = '__all__'

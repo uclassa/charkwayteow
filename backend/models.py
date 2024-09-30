@@ -100,6 +100,7 @@ class Member(CachedImageModel):
     gender = models.CharField(max_length=10, blank=True)
     family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
+    is_admin = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -163,3 +164,14 @@ class PhotoSubmission(CachedImageModel):
 
         # Call the parent save method
         super().save(*args, **kwargs)
+
+
+class GroupChat(models.Model):
+    """
+    Model for group chats
+    """
+    id = models.BigIntegerField(primary_key=True)
+    title = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.title
