@@ -54,7 +54,7 @@ class PhotoSubmissionSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = m.PhotoSubmission
-        fields = ('member', 'description', 'number_of_people', 'image')
+        fields = ('member', 'description', 'number_of_people', 'image', 'score')
 
 
 class GroupChatSerializer(serializers.ModelSerializer):
