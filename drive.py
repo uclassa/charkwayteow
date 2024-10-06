@@ -4,6 +4,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "charkwayteow.settings"
 
 def main():
     s = GoogleDriveStorage()._drive_service
+    print("Available commands: list, delete <id> <id> <id>...")
     while line := input():
         arr = line.split()
         if arr[0] == "list":
