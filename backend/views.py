@@ -54,7 +54,7 @@ class EventViewSet(viewsets.ModelViewSet):
     """
     Event viewset. Read-only and participants are not visible for non-admins
     """
-    queryset = m.Event.objects.all()
+    queryset = m.Event.objects.filter(visible=True)
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = s.EventPublicSerializer
 

@@ -86,6 +86,7 @@ class Event(CachedImageModel):
     venue = models.TextField()
     description = models.TextField(blank=True)
     link = models.URLField(blank=True, null=True)
+    visible = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
