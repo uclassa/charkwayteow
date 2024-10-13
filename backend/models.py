@@ -115,6 +115,7 @@ class Family(models.Model):
     Family model
     """
     fam_name = models.CharField(max_length=30)
+    points_adjustment = models.FloatField(default=0)
 
     @property
     def points(self):
@@ -122,7 +123,7 @@ class Family(models.Model):
         Calculate the total points of the family
         """
         result = self.photo_submissions.aggregate(models.Sum('score'))['score__sum']
-        return result if result else 0
+        return (result if result else 0) + self.points_adjustment
 
     def __str__(self):
         return self.fam_name
