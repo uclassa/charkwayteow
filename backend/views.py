@@ -28,7 +28,7 @@ class HasAPIAccess(permissions.BasePermission):
     """
     keyword = "api-key"
 
-    def _get_key(self, request) -> Optional[str]:
+    def get_key(self, request) -> Optional[str]:
         """
         Get the API key from the request, if it exists
         """
@@ -47,7 +47,7 @@ class HasAPIAccess(permissions.BasePermission):
         return key
 
     def has_permission(self, request, view):
-        return self._get_key(request) == env("API_KEY")
+        return self.get_key(request) == env("API_KEY")
 
 
 class EventViewSet(viewsets.ModelViewSet):

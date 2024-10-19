@@ -2,13 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 from gdstorage.storage import GoogleDriveStorage
 
-
 __all__ = ['Event', 'Member', 'Family', 'PhotoSubmission']
 
 gd_storage = GoogleDriveStorage()
 
+#########################
+##  Utility functions  ##
+#########################
 
-def _get_image_id(url):
+def get_image_id(url):
     """
     Strip the image id from the gdrive url of the image
     """
@@ -28,20 +30,23 @@ def _get_image_id(url):
     return url[start_idx:end_idx]
 
 
-def _get_upload_path(instance, filename):
+def get_upload_path(instance, filename):
     """
     Generate the upload path for the image.
     This method gives each subclass of CachedImageModel its own image folder in google drive
     """
     return f"{instance.__class__.__name__.lower()}_images/{filename}"
 
+###############################
+##  Model class definitions  ##
+###############################
 
 class CachedImageModel(models.Model):
     """
     Abstract base class for models that have an image field
     """
     image_id = models.CharField(blank=True, null=True, verbose_name="Image id (do not edit)")
-    image = models.ImageField(blank=True, null=True, upload_to=_get_upload_path, storage=gd_storage)
+    image = models.ImageField(blank=True, null=True, upload_to=get_upload_path, storage=gd_storage)
 
     class Meta:
         abstract = True
@@ -69,7 +74,7 @@ class CachedImageModel(models.Model):
         # If the image has changed, cache the id of the new image
         if self.image != prev_image:
             try:
-                self.image_id = _get_image_id(self.image.url)
+                self.image_id = get_image_id(self.image.url)
             except ValueError:
                 self.image_id = None
             super().save(update_fields=['image_id'])
@@ -106,6 +111,7 @@ class Member(CachedImageModel):
     family = models.ForeignKey(to="Family", on_delete=models.SET_NULL, null=True, blank=True, related_name="members")
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
     is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -136,26 +142,37 @@ class PhotoSubmission(CachedImageModel):
     """
     date_uploaded = models.DateTimeField(auto_now_add=True)
     family = models.ForeignKey(to="Family", on_delete=models.CASCADE, null=True, blank=True, related_name="photo_submissions")
-    score = models.FloatField(default=0)
-    member = models.ForeignKey(to="Member", on_delete=models.SET_NULL, null=True, blank=True, related_name="photo_submissions")
-    description = models.TextField(blank=True)
+    score = models.FloatField(blank=True, verbose_name="Score (leave blank to auto-calculate)")
+    member = models.ForeignKey(to="Member", on_delete=models.SET_NULL, null=True, related_name="photo_submissions")
+    description = models.TextField(blank=True, choices={
+        "random": "On-campus random encounter",
+        "fun": "On-campus fun event",
+        "single": "Off-campus single fam event",
+        "crossover": "Off-campus crossover fam event",
+        "ssa": "SSA-wide event"
+    })
     number_of_people = models.IntegerField(default=0)
 
-    def _calculate_score(self) -> int:
+    def calculate_score(self):
         """
-        Calculate the score of the photo submission
+        Calculate the score of the photo submission.
+        @property is not used here to avoid unnecessary computation when calculating total points of each fam
         """
-        score = 0
-        if self.description.lower() == "on-campus":
-            score += 10
-        elif self.description.lower() == "off-campus":
-            score += 20
-
-        if self.number_of_people > 3:
-            score += self.number_of_people * 5 * 1.5
-        else:
-            score += self.number_of_people * 5
-        self.score = score
+        if not self.score is None: # do not recalculate the score if field is already filled
+            return
+        self.score = 0
+        match self.description:
+            case "ssa":
+                self.score = self.number_of_people * 7
+            case "random":
+                self.score = (self.number_of_people-1) * 2
+            case "fun":
+                self.score = (self.number_of_people-1) * 5
+            case "single":
+                self.score = (self.number_of_people-1) * 5 + 10
+            case "crossover":
+                self.score = (self.number_of_people-1) * 5 + 30
+                        
 
     def save(self, *args, **kwargs):
         """
@@ -163,7 +180,7 @@ class PhotoSubmission(CachedImageModel):
         Handles the calculation of the score and populating of family field.
         """
         # Calculate the score
-        self._calculate_score()
+        self.calculate_score()
 
         # Set the family field
         self.family = self.member.family

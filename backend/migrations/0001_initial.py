@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('image_id', models.CharField(blank=True, null=True, verbose_name='Image id (do not edit)')),
-                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models._get_upload_path)),
+                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models.get_upload_path)),
                 ('name', models.CharField(blank=True, max_length=30, null=True)),
                 ('dob', models.DateField(blank=True, null=True)),
                 ('email', models.EmailField(blank=True, max_length=254, null=True, unique=True)),
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('image_id', models.CharField(blank=True, null=True, verbose_name='Image id (do not edit)')),
-                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models._get_upload_path)),
+                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models.get_upload_path)),
                 ('title', models.CharField(max_length=30)),
                 ('start_date', models.DateTimeField()),
                 ('end_date', models.DateTimeField(blank=True, null=True)),
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('image_id', models.CharField(blank=True, null=True, verbose_name='Image id (do not edit)')),
-                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models._get_upload_path)),
+                ('image', models.ImageField(blank=True, null=True, storage=gdstorage.storage.GoogleDriveStorage(), upload_to=backend.models.get_upload_path)),
                 ('date_uploaded', models.DateTimeField(auto_now_add=True)),
                 ('score', models.FloatField(default=0)),
                 ('description', models.TextField(blank=True)),

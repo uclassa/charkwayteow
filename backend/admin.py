@@ -96,6 +96,10 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     exclude = ('image_id',)
 
 
+@admin.action(description="Mark selected members as inactive")
+def make_inactive(modeladmin, request, queryset):
+    queryset.update(is_active=False)
+
 class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the Member model.
@@ -105,6 +109,8 @@ class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     list_display = ('name', 'telegram_username', 'email', 'family')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
+    list_filter = ('is_active', 'is_admin', 'family')
+    actions = (make_inactive,)
 
 
 class FamilyAdmin(ImportExportMixin, admin.ModelAdmin):
@@ -121,7 +127,7 @@ class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     Admin class for the PhotoSubmission model.
     """
     list_display = ('date_uploaded', 'image', 'member', 'family', 'score')
-    readonly_fields = (show_image_url, 'score')
+    readonly_fields = (show_image_url,)
     exclude = ('image_id',)
 
 
