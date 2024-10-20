@@ -101,7 +101,8 @@ class Member(CachedImageModel):
     """
     Member model
     """
-    name = models.CharField(max_length=30, blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True, unique=True)
     telegram_username = models.CharField(max_length=30, blank=True, null=True, unique=True)
@@ -112,6 +113,10 @@ class Member(CachedImageModel):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, null=True, blank=True)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
         return self.name
