@@ -114,7 +114,7 @@ class MemberResource(resources.ModelResource):
         import_id_fields = ("id",)
 
 
-class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
+class MemberAdmin(ImportExportMixin, admin.ModelAdmin):
     """
     Admin class for the Member model.
     Field order defined in the fields attribute.
@@ -122,8 +122,6 @@ class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     resource_classes = (MemberResource,)
     search_fields = ('first_name', 'last_name')
     list_display = ('id', 'first_name', 'last_name', 'telegram_username', 'email', 'family')
-    readonly_fields = (show_image_url,)
-    exclude = ('image_id',)
     list_filter = ('is_active', 'is_admin', 'family')
     actions = (make_inactive,)
 

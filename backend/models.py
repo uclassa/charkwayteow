@@ -97,7 +97,7 @@ class Event(CachedImageModel):
         return self.title
 
 
-class Member(CachedImageModel):
+class Member(models.Model):
     """
     Member model
     """

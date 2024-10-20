@@ -45,7 +45,6 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.Member
         fields = '__all__'
-        read_only_fields = ('image_id',)
 
 
 class PhotoSubmissionSerializer(serializers.ModelSerializer):
