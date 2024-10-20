@@ -74,11 +74,12 @@ class MemberUsernameViewSet(viewsets.GenericViewSet,
                             mixins.UpdateModelMixin):
     """
     Member viewset for telebot. Lookup using telegram handle.
+    Case insensitive to accommodate for data entry inconsistencies.
     """
     queryset = m.Member.objects.all()
     serializer_class = s.MemberSerializer
     permission_classes = [HasAPIAccess]
-    lookup_field = "telegram_username"
+    lookup_field = "telegram_username__iexact"
 
 
 class MemberIDViewset(MemberUsernameViewSet):
