@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
+from import_export import resources
 from import_export.admin import ImportExportMixin
 from . import models as m
 
@@ -98,15 +99,29 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
 
 @admin.action(description="Mark selected members as inactive")
 def make_inactive(modeladmin, request, queryset):
+    """
+    Admin action to mark members inactive
+    """
     queryset.update(is_active=False)
+
+class MemberResource(resources.ModelResource):
+    """
+    Resource for member model.
+    TODO: explore the importing of SGN form data
+    """
+    class Meta:
+        model = m.Member
+        import_id_fields = ("id",)
+
 
 class MemberAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the Member model.
     Field order defined in the fields attribute.
     """
-    search_fields = ('name',)
-    list_display = ('name', 'telegram_username', 'email', 'family')
+    resource_classes = (MemberResource,)
+    search_fields = ('first_name', 'last_name')
+    list_display = ('id', 'first_name', 'last_name', 'telegram_username', 'email', 'family')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
     list_filter = ('is_active', 'is_admin', 'family')
@@ -119,7 +134,7 @@ class FamilyAdmin(ImportExportMixin, admin.ModelAdmin):
     """
     form = FamilyForm
     readonly_fields = ('points',)
-    list_display = ('fam_name', 'points')
+    list_display = ('id', 'fam_name', 'points')
 
 
 class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):

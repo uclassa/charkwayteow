@@ -116,7 +116,7 @@ class Member(CachedImageModel):
 
     @property
     def name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name if self.first_name else ''} {self.last_name if self.last_name else ''}".strip()
 
     def __str__(self):
         return self.name
