@@ -147,7 +147,7 @@ class PhotoSubmission(CachedImageModel):
     """
     date_uploaded = models.DateTimeField(auto_now_add=True)
     family = models.ForeignKey(to="Family", on_delete=models.CASCADE, null=True, blank=True, related_name="photo_submissions")
-    score = models.FloatField(blank=True, verbose_name="Score (leave blank to auto-calculate)")
+    score = models.FloatField(blank=True, verbose_name="Score (delete to auto-calculate)")
     member = models.ForeignKey(to="Member", on_delete=models.SET_NULL, null=True, related_name="photo_submissions")
     description = models.TextField(blank=True, choices={
         "random": "On-campus random encounter",
@@ -157,6 +157,7 @@ class PhotoSubmission(CachedImageModel):
         "ssa": "SSA-wide event"
     })
     number_of_people = models.IntegerField(default=0)
+    vetted = models.BooleanField(default=False)
 
     def calculate_score(self):
         """

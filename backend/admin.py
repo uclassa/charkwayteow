@@ -135,13 +135,23 @@ class FamilyAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('id', 'fam_name', 'points')
 
 
+@admin.action(description="Mark selected submissions as vetted")
+def make_vetted(modeladmin, request, queryset):
+    """
+    Admin action to mark submissions as vetted
+    """
+    queryset.update(vetted=True)
+
+
 class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
     list_display = ('date_uploaded', show_image_url, 'member', 'family', 'description', 'number_of_people','score')
+    list_filter = ('family', 'vetted', 'description')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
+    actions = (make_vetted,)
 
 
 class GroupChatAdmin(admin.ModelAdmin):
