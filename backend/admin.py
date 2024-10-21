@@ -75,6 +75,8 @@ class ImageFieldReorderedAdmin(admin.ModelAdmin):
     """
     Base admin class for the Event and Member models.
     Reorders the fields in the admin panel to have the image field at the bottom.
+    NOTE: Since we're using google drive, any admin which includes the image field
+    will be VERY SLOW (~1s) to load.
     """
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -147,7 +149,7 @@ class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
-    list_display = ('date_uploaded', show_image_url, 'member', 'family', 'description', 'number_of_people','score')
+    list_display = ('id', 'date_uploaded', show_image_url, 'member', 'family', 'description', 'number_of_people','score', 'vetted')
     list_filter = ('family', 'vetted', 'description')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
