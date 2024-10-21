@@ -168,7 +168,7 @@ class PhotoSubmission(CachedImageModel):
         self.score = 0
         match self.description:
             case "ssa":
-                self.score = self.number_of_people * 7
+                self.score = self.number_of_people * 10
             case "random":
                 self.score = (self.number_of_people-1) * 2
             case "fun":

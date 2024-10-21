@@ -67,7 +67,7 @@ def show_image_url(obj):
     Function to display the image url as a clickable link in the admin panel
     """
     if obj.image_url:
-        return format_html('<a href="{url}">{url}</a>', url=obj.image_url)
+        return format_html('<a href="{url}">image</a>', url=obj.image_url)
     return "No image"
 
 
@@ -139,7 +139,7 @@ class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
-    list_display = ('date_uploaded', 'image', 'member', 'family', 'score')
+    list_display = ('date_uploaded', show_image_url, 'member', 'family', 'description', 'number_of_people','score')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
 
