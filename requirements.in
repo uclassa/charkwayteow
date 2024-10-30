@@ -6,5 +6,5 @@ django-googledrive-storage
 django-import-export
 djangorestframework
 pillow
-psycopg
+psycopg[binary,pool]
 whitenoise
