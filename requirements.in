@@ -1,0 +1,10 @@
+dj-database-url
+django-cleanup
+django-cors-headers
+django-environ
+django-googledrive-storage
+django-import-export
+djangorestframework
+pillow
+psycopg
+whitenoise
