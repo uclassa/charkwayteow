@@ -7,4 +7,5 @@ django-import-export
 djangorestframework
 pillow
 psycopg[binary,pool]
+tablib[xlsx] # to allow importing and exporting of xlsx files
 whitenoise
