@@ -29,7 +29,6 @@ class FamilySerializer(serializers.ModelSerializer):
 class MemberSerializer(serializers.ModelSerializer):
     """
     Member serializer
-    TODO: Implement proper image handling
     """
     events = serializers.SlugRelatedField(
         many=True,
