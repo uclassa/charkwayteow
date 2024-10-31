@@ -1,4 +1,4 @@
-import os, json
+import os
 from gdstorage.storage import GoogleDriveStorage
 os.environ["DJANGO_SETTINGS_MODULE"] = "charkwayteow.settings"
 
