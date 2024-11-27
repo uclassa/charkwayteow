@@ -5,9 +5,6 @@ from django.utils.html import format_html
 from import_export import resources
 from import_export.admin import ImportExportMixin
 from . import models as m
-from gdstorage.storage import GoogleDriveStorage
-
-gd_storage = GoogleDriveStorage()
 
 class FamilyForm(forms.ModelForm):
     """
@@ -96,37 +93,6 @@ class ImageFieldReorderedAdmin(admin.ModelAdmin):
             form.base_fields['image_id'] = image_id
         return form
 
-class EventForm(forms.ModelForm):
-    class Meta:
-        model = m.Event
-        fields = '__all__'
-
-    def save(self, commit=True):
-        """
-        Overwrite the regular save method so that a gdrive folder 
-        can be created everytime a new event is created
-        """
-        event = super().save(commit=False)
-
-        # only create a new folder if it is a create operation, 
-        # since save() is called both during update and create
-        if not self.instance.pk:
-            # the name of the folder will follow the current covention of:
-            # <Start Date>_<Title>
-            start_date_string = self.instance.start_date.strftime('%Y%m%d')
-            event_folder_name = f'django/event_photos/{start_date_string}_{self.instance.title}'
-
-            created_folder = gd_storage._get_or_create_folder(event_folder_name)
-            folder_id = created_folder.get('id', None)
-
-            if folder_id:
-                event.event_image_folder_url = f'https://drive.google.com/drive/u/3/folders/{folder_id}'
-
-        if commit:
-            event.save()
-
-        return event
-
 
 class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
@@ -138,7 +104,6 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     list_display = ('title', 'start_date', 'end_date', 'venue')
     readonly_fields = (show_image_url, show_event_folder_url)
     exclude = ('image_id', 'event_image_folder_url')
-    form = EventForm
 
 @admin.action(description="Mark selected members as inactive")
 def make_inactive(modeladmin, request, queryset):

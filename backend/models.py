@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from gdstorage.storage import GoogleDriveStorage
+from charkwayteow import settings
 
 __all__ = ['Event', 'Member', 'Family', 'PhotoSubmission']
 
@@ -96,6 +97,30 @@ class Event(CachedImageModel):
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        """
+        Overwrite the regular save method so that a gdrive folder 
+        can be created everytime a new event is created
+        """
+        super().save(*args, **kwargs)
+
+        # only create a new folder if it is a create operation, 
+        # since save() is called both during update and create
+        if not self.event_image_folder_url:
+            print("this is going to happen")
+            # the name of the folder will follow the current covention of:
+            # <Start Date>_<Title>
+            start_date_string = self.start_date.strftime('%Y%m%d')
+            event_folder_name = f'{settings.GOOGLE_DRIVE_STORAGE_MEDIA_ROOT}/{settings.GOOGLE_DRIVE_PHOTODUMP_FOLDER}/{start_date_string}_{self.title}'
+
+            created_folder = gd_storage._get_or_create_folder(event_folder_name)
+            folder_id = created_folder.get('id', None)
+
+            if folder_id:
+                self.event_image_folder_url = f'https://drive.google.com/drive/u/3/folders/{folder_id}'
+
+            super().save(update_fields=["event_image_folder_url"])
 
 
 class Member(models.Model):
