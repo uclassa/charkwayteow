@@ -66,15 +66,6 @@ class EventViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
 
-class EventAPIViewSet(viewsets.ModelViewSet):
-    """
-    Event viewset for the API
-    """
-    queryset = m.Event.objects.filter(visible=True)
-    permission_classes = [HasAPIAccess]
-    serializer_class = s.EventAPISerializer
-
-
 class FamilyViewSet(viewsets.GenericViewSet,
                     mixins.ListModelMixin):
     """
