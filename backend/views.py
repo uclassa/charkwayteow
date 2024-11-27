@@ -55,8 +55,24 @@ class EventViewSet(viewsets.ModelViewSet):
     Event viewset. Read-only and participants are not visible for non-admins
     """
     queryset = m.Event.objects.filter(visible=True)
-    permission_classes = [IsAdminOrReadOnly]
+    # allow either IsAdminOrReadOnly or HasAPIAccess
+    permission_classes = [IsAdminOrReadOnly | HasAPIAccess]
     serializer_class = s.EventPublicSerializer
+
+    def get_serializer_class(self):
+        if self.request.META.get("HTTP_AUTHORIZATION", None):
+            return s.EventAPISerializer
+        
+        return super().get_serializer_class()
+
+
+class EventAPIViewSet(viewsets.ModelViewSet):
+    """
+    Event viewset for the API
+    """
+    queryset = m.Event.objects.filter(visible=True)
+    permission_classes = [HasAPIAccess]
+    serializer_class = s.EventAPISerializer
 
 
 class FamilyViewSet(viewsets.GenericViewSet,
