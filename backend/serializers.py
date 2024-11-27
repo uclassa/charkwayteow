@@ -9,10 +9,12 @@ class EventPublicSerializer(serializers.ModelSerializer):
     Otherwise api calls will be very very slowwwwwwww
     """
     image = serializers.CharField(source='image_url')
+    event_folder = serializers.CharField(source='event_image_folder_url')
 
+    # TODO: might have to play with this later
     class Meta:
         model = m.Event
-        fields = ('title', 'start_date', 'end_date', 'venue', 'description', 'image', 'link')
+        fields = ('title', 'start_date', 'end_date', 'venue', 'description', 'image', 'link', 'event_folder')
         read_only_fields = fields
 
 

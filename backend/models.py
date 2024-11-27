@@ -92,6 +92,7 @@ class Event(CachedImageModel):
     description = models.TextField(blank=True)
     link = models.URLField(blank=True, null=True)
     visible = models.BooleanField(default=True)
+    event_image_folder_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.title
