@@ -92,7 +92,7 @@ class Event(CachedImageModel):
     venue = models.TextField()
     description = models.TextField(blank=True)
     link = models.URLField(blank=True, null=True)
-    visible = models.BooleanField(default=True)
+    visible = models.BooleanField(default=False, verbose_name="Event visibility on telebot and website (if set to true, a new folder will be created on the drive for uploading event images)")
     event_image_folder_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
@@ -105,12 +105,12 @@ class Event(CachedImageModel):
         """
         super().save(*args, **kwargs)
 
-        # only create a new folder if the folder url field is currently empty
-        if not self.event_image_folder_url:
+        # only create a new folder if the folder url field is currently empty and the event is visible
+        if not self.event_image_folder_url and self.visible:
             # the name of the folder will follow the current convention of:
             # <Start Date>_<Title>
             start_date_string = self.start_date.strftime('%Y%m%d')
-            event_folder_name = f'{settings.GOOGLE_DRIVE_STORAGE_MEDIA_ROOT}/{settings.GOOGLE_DRIVE_PHOTODUMP_FOLDER}/{start_date_string}_{self.title}'
+            event_folder_name = f'{settings.GOOGLE_DRIVE_STORAGE_MEDIA_ROOT}/{settings.GOOGLE_DRIVE_PHOTODUMP_FOLDER}/{start_date_string}_{self.title.replace(" ", "_")}'
 
             created_folder = gd_storage._get_or_create_folder(event_folder_name)
             folder_id = created_folder.get('id', None)
