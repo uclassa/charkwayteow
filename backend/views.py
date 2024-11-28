@@ -52,17 +52,26 @@ class HasAPIAccess(permissions.BasePermission):
 
 class EventViewSet(viewsets.ModelViewSet):
     """
-    Event viewset. Read-only and participants are not visible for non-admins
+    Event viewset. Behaviour is as follows:
+    If an api key is not provided, uses the EventPublicSerializer and forbids unsafe methods. (this is for the website)
+    If an api key is provided and is valid, uses the EventAPISerializer instead. (this is for the telebot)
     """
     queryset = m.Event.objects.filter(visible=True)
-    # allow either IsAdminOrReadOnly or HasAPIAccess
-    permission_classes = [IsAdminOrReadOnly | HasAPIAccess]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = s.EventPublicSerializer
+
+    def get_permissions(self):
+        if self.request.META.get("HTTP_AUTHORIZATION", None):
+            # If the request has an auth header, we assume it wants to use the unsafe endpoint.
+            return [HasAPIAccess()]
+
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.request.META.get("HTTP_AUTHORIZATION", None):
+            # If the request has an auth header (by now it has been validated), use the EventAPISerializer
             return s.EventAPISerializer
-        
+
         return super().get_serializer_class()
 
 

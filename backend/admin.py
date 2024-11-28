@@ -101,9 +101,9 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     filter_horizontal = ('participants',)
     search_fields = ('title',)
-    list_display = ('title', 'start_date', 'end_date', 'venue')
-    readonly_fields = (show_image_url, show_event_folder_url)
-    exclude = ('image_id', 'event_image_folder_url')
+    list_display = ('title', 'start_date', 'end_date', 'venue', show_event_folder_url)
+    readonly_fields = (show_image_url,)
+    exclude = ('image_id',)
 
 @admin.action(description="Mark selected members as inactive")
 def make_inactive(modeladmin, request, queryset):
