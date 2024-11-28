@@ -1,8 +1,14 @@
-import sys, os, shlex
+import os, shlex
 from copy import copy
 from googleapiclient.errors import HttpError
 from gdstorage.storage import GoogleDriveStorage
 os.environ["DJANGO_SETTINGS_MODULE"] = "charkwayteow.settings"
+
+"""
+This is a simple tool to manage the service account drive connected to the project.
+It starts you off in the root of the filesystem (basically "my drive").
+Use the `ls` and `cd` commands to navigate the drive and `rm` to remove any unneeded files and directories.
+"""
 
 class bcolors:
     HEADER = '\033[95m'
@@ -20,56 +26,61 @@ def main():
     print("Available commands: ls, cd, rm <file> <file> ..")
     print("Note: rm only supports files and directories in the current folder because Alex is lazy and hasn't implemented slash support yet")
     context = []
-    sys.stdout.write(f"{bcolors.OKBLUE}/{"/".join(map(lambda tup: tup[0], context))}{bcolors.OKGREEN}$ {bcolors.ENDC}")
-    while line := input():
-        arr = shlex.split(line)
+    while True:
         try:
-            cmd = s.files()
-            match arr[0]:
-                case "ls":
-                    res = cmd.list(q=f"'{context[-1][1] if context else "root"}' in parents").execute()
-                    for file in res["files"]:
-                        sys.stdout.write(file["name"])
-                        if file["mimeType"] == "application/vnd.google-apps.folder":
-                            sys.stdout.write("/")
-                        print()
-                case "cd":
-                    if len(arr) > 1:
-                        if arr[1].startswith("/"):
-                            new_context = []
-                            file = arr[1].lstrip("/")
-                        else:
-                            new_context = copy(context)
-                            file = arr[1]
-                        error = False
-                        if file:
-                            for name in file.split("/"):
-                                match name:
-                                    case "..":
-                                        if not new_context:
-                                            error = True
-                                            break
-                                        new_context.pop()
-                                    case _:
-                                        res = cmd.list(q=f"name = '{name}' and mimeType = 'application/vnd.google-apps.folder' and '{new_context[-1][1] if new_context else "root"}' in parents").execute()
-                                        if len(res["files"]) == 0:
-                                            error = True
-                                            break
-                                        new_context.append((name, res["files"][0]["id"]))
-                        if error:
-                            print(f"No such directory: {arr[1]}")
-                        else:
-                            context = new_context
-                case "rm":
-                    for item in arr[1:]:
-                        res = cmd.list(q=f"name = '{item}' and '{context[-1][1] if context else "root"}' in parents").execute()
-                        if not res["files"]:
-                            print(f"No such file: {item}")
-                            break
-                        file = res["files"][0]
-                        if file["mimeType"] == "application/vnd.google-apps.folder":
-                            while True:
-                                try:
+            line = input(f"{bcolors.OKBLUE}/{"/".join(map(lambda tup: tup[0], context))}{bcolors.OKGREEN}$ {bcolors.ENDC}")
+            if not line:
+                continue
+            arr = shlex.split(line)
+            try:
+                cmd = s.files()
+                match arr[0]:
+                    case "ls":
+                        res = cmd.list(q=f"'{context[-1][1] if context else "root"}' in parents").execute()
+                        for file in res["files"]:
+                            name = file["name"]
+                            if file["mimeType"] == "application/vnd.google-apps.folder":
+                                name += "/"
+                            print(name)
+                    case "cd":
+                        if len(arr) > 1:
+                            arr[1] = arr[1].rstrip("/")
+                            if arr[1].startswith("/"):
+                                new_context = []
+                                file = arr[1].lstrip("/")
+                            else:
+                                new_context = copy(context)
+                                file = arr[1]
+                            error = False
+                            if file:
+                                for name in file.split("/"):
+                                    match name:
+                                        case "..":
+                                            if not new_context:
+                                                error = True
+                                                break
+                                            new_context.pop()
+                                        case ".":
+                                            pass
+                                        case _:
+                                            res = cmd.list(q=f"name = '{name}' and mimeType = 'application/vnd.google-apps.folder' and '{new_context[-1][1] if new_context else "root"}' in parents").execute()
+                                            if len(res["files"]) == 0:
+                                                error = True
+                                                break
+                                            new_context.append((name, res["files"][0]["id"]))
+                            if error:
+                                print(f"No such directory: {arr[1]}")
+                            else:
+                                context = new_context
+                    case "rm":
+                        for item in arr[1:]:
+                            res = cmd.list(q=f"name = '{item.rstrip("/")}' and '{context[-1][1] if context else "root"}' in parents").execute()
+                            if not res["files"]:
+                                print(f"No such file: {item}")
+                                break
+                            file = res["files"][0]
+                            if file["mimeType"] == "application/vnd.google-apps.folder":
+                                while True:
                                     decision = input(f"{file["name"]} is a directory. Confirm delete? y/N: ")
                                     match decision:
                                         case "Y" | "y" | "yes":
@@ -78,14 +89,14 @@ def main():
                                         case "N" | "n" | "no" | "":
                                             remove = False
                                             break
-                                except EOFError:
-                                    print()
-                                    continue
-                        if remove:
-                            cmd.delete(fileId=file["id"]).execute()
-        except HttpError as e:
-            print(e.reason)
-        sys.stdout.write(f"{bcolors.OKBLUE}/{"/".join(map(lambda tup: tup[0], context))}{bcolors.OKGREEN}$ {bcolors.ENDC}")      
+                            if remove:
+                                cmd.delete(fileId=file["id"]).execute()
+            except HttpError as e:
+                print(e.reason)
+        except EOFError:
+            print()
+            break
+        
 
 if __name__ == "__main__":
     main()
