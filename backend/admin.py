@@ -6,7 +6,6 @@ from import_export import resources
 from import_export.admin import ImportExportMixin
 from . import models as m
 
-
 class FamilyForm(forms.ModelForm):
     """
     Custom form for the Family model to allow for the selection of members
@@ -70,6 +69,14 @@ def show_image_url(obj):
         return format_html('<a href="{url}">image</a>', url=obj.image_url)
     return "No image"
 
+@admin.display(description="Link to event image folder")
+def show_event_folder_url(obj):
+    """
+    Function to display the event folder url as a clickable link in the admin panel
+    """
+    if obj.event_image_folder_url:
+        return format_html('<a href="{url}">Folder</a>', url=obj.event_image_folder_url)
+    return "No folder created yet"
 
 class ImageFieldReorderedAdmin(admin.ModelAdmin):
     """
@@ -94,10 +101,9 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     filter_horizontal = ('participants',)
     search_fields = ('title',)
-    list_display = ('title', 'start_date', 'end_date', 'venue')
+    list_display = ('title', 'start_date', 'end_date', 'venue', show_event_folder_url)
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
-
 
 @admin.action(description="Mark selected members as inactive")
 def make_inactive(modeladmin, request, queryset):

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from gdstorage.storage import GoogleDriveStorage
+from django.conf import settings
 
 __all__ = ['Event', 'Member', 'Family', 'PhotoSubmission']
 
@@ -91,10 +92,33 @@ class Event(CachedImageModel):
     venue = models.TextField()
     description = models.TextField(blank=True)
     link = models.URLField(blank=True, null=True)
-    visible = models.BooleanField(default=True)
+    visible = models.BooleanField(default=False, verbose_name="Event visibility on telebot and website (if set to true, a new folder will be created on the drive for uploading event images)")
+    event_image_folder_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        """
+        Overwrite the regular save method so that a gdrive folder 
+        can be created everytime a new event is created
+        """
+        super().save(*args, **kwargs)
+
+        # only create a new folder if the folder url field is currently empty and the event is visible
+        if not self.event_image_folder_url and self.visible:
+            # the name of the folder will follow the current convention of:
+            # <Start Date>_<Title>
+            start_date_string = self.start_date.strftime('%Y%m%d')
+            event_folder_name = f'{settings.GOOGLE_DRIVE_STORAGE_MEDIA_ROOT}/{settings.GOOGLE_DRIVE_PHOTODUMP_FOLDER}/{start_date_string}_{self.title.replace(" ", "_")}'
+
+            created_folder = gd_storage._get_or_create_folder(event_folder_name)
+            folder_id = created_folder.get('id', None)
+
+            if folder_id:
+                self.event_image_folder_url = f'https://drive.google.com/drive/folders/{folder_id}'
+
+            super().save(update_fields=["event_image_folder_url"])
 
 
 class Member(models.Model):
