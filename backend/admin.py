@@ -2,9 +2,90 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
-from import_export import resources
+from import_export import fields, resources
 from import_export.admin import ImportExportMixin
 from . import models as m
+
+from import_export import fields, resources
+from itertools import groupby
+
+from import_export import fields, resources
+
+class EventResource(resources.ModelResource):
+    # Event fields to be added
+    event_id = fields.Field(attribute='id', column_name='Event ID')
+    event_title = fields.Field(attribute='title', column_name='Event Title')
+    event_start_date = fields.Field(attribute='start_date', column_name='Start Date')
+    event_end_date = fields.Field(attribute='end_date', column_name='End Date')
+    event_venue = fields.Field(attribute='venue', column_name='Venue')         
+
+    # Participant fields, easily modified based on the type of data required
+    participant_id = fields.Field(column_name='Participant ID')
+    participant_name = fields.Field(column_name='Participant Name')
+    participant_email = fields.Field(column_name='Participant Email')
+    participant_telegram = fields.Field(column_name='Participant Telegram')
+    participant_family = fields.Field(column_name='Participant Family')
+
+    class Meta:
+        model = m.Event
+        fields = (
+            'event_id', 'event_title', 'event_start_date', 'event_end_date', 'event_venue',
+            'participant_id', 'participant_name', 'participant_email',
+            'participant_telegram', 'participant_family'
+        )
+        export_order = fields
+
+    """ 
+    Basically, this is to extract individual data and turn them into simpler data types like string/models
+    Just remember to dehydrate whatever participant details so that it can be exported
+    """
+    def dehydrate_participant_id(self, event):
+        return event.current_participant.id if hasattr(event, 'current_participant') else None
+
+    def dehydrate_participant_name(self, event):
+        if hasattr(event, 'current_participant'):
+            return f"{event.current_participant.first_name} {event.current_participant.last_name}"
+        return None
+
+    def dehydrate_participant_email(self, event):
+        if hasattr(event, 'current_participant'):
+            return event.current_participant.email or 'No email'
+        return None
+
+    def dehydrate_participant_telegram(self, event):
+        if hasattr(event, 'current_participant'):
+            return event.current_participant.telegram_username or 'No telegram'
+        return None
+
+    def dehydrate_participant_family(self, event):
+        if hasattr(event, 'current_participant'):
+            return event.current_participant.family.fam_name if event.current_participant.family else 'No family'
+        return None
+
+    def export(self, queryset=None, *args, **kwargs):
+        """
+        Override export method to create a row for each participant in each event
+        Expanded query set is required because Django's import-export library processes
+        one object per row
+        """
+        if queryset is None:
+            queryset = self.get_queryset()
+
+        expanded_queryset = []
+        
+        # For each event, create one row per participant
+        for event in queryset:
+            for participant in event.participants.all():
+                # Create a copy of the event for each participant
+                event_copy = m.Event()
+                for field in event._meta.fields:
+                    setattr(event_copy, field.name, getattr(event, field.name))
+                
+                # Attach the current participant to the event copy
+                event_copy.current_participant = participant
+                expanded_queryset.append(event_copy)
+
+        return super().export(expanded_queryset, *args, **kwargs)
 
 class FamilyForm(forms.ModelForm):
     """
@@ -99,6 +180,7 @@ class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     Admin class for the Event model.
     Field order defined in the fields attribute.
     """
+    resource_class = EventResource
     filter_horizontal = ('participants',)
     search_fields = ('title',)
     list_display = ('title', 'start_date', 'end_date', 'venue', show_event_folder_url)
