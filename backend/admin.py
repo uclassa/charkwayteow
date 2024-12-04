@@ -1,86 +1,38 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.utils.encoding import force_str
 from django.utils.html import format_html
-from import_export import fields, resources
-from import_export.admin import ImportExportMixin, ExportActionModelAdmin
+from import_export import resources
+from import_export.admin import ImportExportMixin, ImportMixin, ExportActionMixin
 from . import models as m
 
-class EventResource(resources.ModelResource):
-    # Event fields to be added
-    event_id = fields.Field(attribute='id', column_name='Event ID')
-    event_title = fields.Field(attribute='title', column_name='Event Title')
-    event_start_date = fields.Field(attribute='start_date', column_name='Start Date')
-    event_end_date = fields.Field(attribute='end_date', column_name='End Date')
-    event_venue = fields.Field(attribute='venue', column_name='Venue')         
-
-    # Participant fields, easily modified based on the type of data required
-    participant_id = fields.Field(column_name='Participant ID')
-    participant_name = fields.Field(column_name='Participant Name')
-    participant_email = fields.Field(column_name='Participant Email')
-    participant_telegram = fields.Field(column_name='Participant Telegram')
-    participant_family = fields.Field(column_name='Participant Family')
-
-    class Meta:
-        model = m.Event
-        fields = (
-            'event_id', 'event_title', 'event_start_date', 'event_end_date', 'event_venue',
-            'participant_id', 'participant_name', 'participant_email',
-            'participant_telegram', 'participant_family'
-        )
-        export_order = fields
-
-    """ 
-    Basically, this is to extract individual data and turn them into simpler data types like string/models
-    Just remember to dehydrate whatever participant details so that it can be exported
+class EventParticipantResource(resources.ModelResource):
     """
-    def dehydrate_participant_id(self, event):
-        return event.current_participant.id if hasattr(event, 'current_participant') else None
+    Resource class for exporting participant data for events.
+    Note that the metaclass uses the `Member` model since it's member data that we are exporting.
+    """
+    class Meta:
+        model = m.Member
+        fields = ('first_name', 'last_name', 'dob', 'email', 'telegram_username') # TODO: update this accordingly with member model changes 
 
-    def dehydrate_participant_name(self, event):
-        if hasattr(event, 'current_participant'):
-            return f"{event.current_participant.first_name} {event.current_participant.last_name}"
-        return None
-
-    def dehydrate_participant_email(self, event):
-        if hasattr(event, 'current_participant'):
-            return event.current_participant.email or 'No email'
-        return None
-
-    def dehydrate_participant_telegram(self, event):
-        if hasattr(event, 'current_participant'):
-            return event.current_participant.telegram_username or 'No telegram'
-        return None
-
-    def dehydrate_participant_family(self, event):
-        if hasattr(event, 'current_participant'):
-            return event.current_participant.family.fam_name if event.current_participant.family else 'No family'
-        return None
+    def get_export_headers(self, selected_fields=None):
+        """
+        Override get_export_headers so that the headers for the exported file are human friendly.
+        """
+        export_fields = self.get_export_fields(selected_fields)
+        return [force_str(field.column_name).replace("_", " ").capitalize() for field in export_fields if field]
 
     def export(self, queryset=None, *args, **kwargs):
         """
-        Override export method to create a row for each participant in each event
-        Expanded query set is required because Django's import-export library processes
-        one object per row
+        Override export method to export the linked participants instead of the event itself.
+        Will only export linked participants for the first event in the queryset.
+        It only makes sense to export participants for a single event anyway.
         """
         if queryset is None:
-            queryset = self.get_queryset()
+            return None
 
-        expanded_queryset = []
-        
-        # For each event, create one row per participant
-        for event in queryset:
-            for participant in event.participants.all():
-                # Create a copy of the event for each participant
-                event_copy = m.Event()
-                for field in event._meta.fields:
-                    setattr(event_copy, field.name, getattr(event, field.name))
-                
-                # Attach the current participant to the event copy
-                event_copy.current_participant = participant
-                expanded_queryset.append(event_copy)
-
-        return super().export(expanded_queryset, *args, **kwargs)
+        return super().export(queryset.first().participants.all(), *args, **kwargs)
 
 class FamilyForm(forms.ModelForm):
     """
@@ -170,12 +122,12 @@ class ImageFieldReorderedAdmin(admin.ModelAdmin):
         return form
 
 
-class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin, ExportActionModelAdmin):
+class EventAdmin(ImportMixin, ExportActionMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the Event model.
     Field order defined in the fields attribute.
     """
-    resource_class = EventResource
+    resource_class = EventParticipantResource
     filter_horizontal = ('participants',)
     search_fields = ('title',)
     list_display = ('title', 'start_date', 'end_date', 'venue', show_event_folder_url)
