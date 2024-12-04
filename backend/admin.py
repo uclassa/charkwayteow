@@ -3,13 +3,8 @@ from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
 from import_export import fields, resources
-from import_export.admin import ImportExportMixin
+from import_export.admin import ImportExportMixin, ExportActionModelAdmin
 from . import models as m
-
-from import_export import fields, resources
-from itertools import groupby
-
-from import_export import fields, resources
 
 class EventResource(resources.ModelResource):
     # Event fields to be added
@@ -175,7 +170,7 @@ class ImageFieldReorderedAdmin(admin.ModelAdmin):
         return form
 
 
-class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
+class EventAdmin(ImportExportMixin, ImageFieldReorderedAdmin, ExportActionModelAdmin):
     """
     Admin class for the Event model.
     Field order defined in the fields attribute.
