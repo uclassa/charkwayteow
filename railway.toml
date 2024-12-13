@@ -1,9 +1,0 @@
-# This file contains the build and start commands we need to use for railway deployment
-
-# Install the gunicorn web server and collect static files for admin portal
-[build]
-buildCommand = "pip install gunicorn && python manage.py collectstatic --noinput"
-
-# We need to bind to ipv6 port to listen on private network as well
-[deploy]
-startCommand = "python manage.py migrate && gunicorn -b '[::]:8080' charkwayteow.wsgi"
