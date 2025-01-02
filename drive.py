@@ -38,6 +38,14 @@ class DriveManager:
     def is_directory(self, file):
         return file.get("mimeType") == gds._GOOGLE_DRIVE_FOLDER_MIMETYPE_
     
+    def parse_filename(self, name):
+        split_name = name.rstrip("/").rsplit("/", 1)
+        match len(split_name):
+            case 1:
+                return ".", split_name[-1]
+            case 2:
+                return split_name
+    
     def ls(self):
         res = self.s.files().list(q=f"'{self.curr_folder_id()}' in parents").execute()
         for file in res["files"]:
@@ -51,15 +59,19 @@ class DriveManager:
             return
         if context is None:
             context = self.context
-        file = file.rstrip("/")
-        if file.startswith("/"):
-            new_context = []
-            file = file.lstrip("/")
+        if file == "/":
+            context.clear()
+            return True
         else:
-            new_context = copy(self.context)
+            file = file.rstrip("/")
+            if file.startswith("/"):
+                new_context = []
+                file = file.lstrip("/")
+            else:
+                new_context = copy(self.context)
+            if not file:
+                return
         error = False
-        if not file:
-            return
         for name in file.split("/"):
             match name:
                 case "..":
@@ -84,21 +96,14 @@ class DriveManager:
 
     def rm(self, files):
         for file in files:
-            split_name = file.rstrip("/").rsplit("/", 1)
-            match len(split_name):
-                case 1:
-                    dirname, filename = ".", split_name[-1]
-                case 2:
-                    dirname, filename = split_name
-                case _:
-                    return
+            dirname, filename = self.parse_filename(file)
             context = copy(self.context)
             if not self.cd(dirname, context):
-                return
+                continue
             res = self.s.files().list(q=f"name = '{filename}' and '{self.curr_folder_id(context)}' in parents").execute()
             if len(res["files"]) == 0:
                 print(f"No such file: {filename}")
-                return
+                continue
             file_data = res["files"][0]
             if self.is_directory(file_data):
                 while True:
@@ -115,10 +120,34 @@ class DriveManager:
             if remove:
                 self.s.files().delete(fileId=file_data["id"]).execute()
 
+    def mv(self, files):
+        if not files:
+            return
+        if len(files) < 2:
+            print("mv: Missing destination directory")
+            return
+        context = copy(self.context)
+        if not self.cd(files[-1], context):
+            return
+        dest_id = self.curr_folder_id(context)
+        for file in files[:-1]:
+            dirname, filename = self.parse_filename(file)
+            context = copy(self.context)
+            if not self.cd(dirname, context):
+                continue
+            res = self.s.files().list(q=f"name = '{filename}' and '{self.curr_folder_id(context)}' in parents").execute()
+            if len(res["files"]) == 0:
+                print(f"No such file: {filename}")
+                continue
+            file_id = res["files"][0]["id"]
+            file_data = self.s.files().get(fileId=file_id, fields="parents").execute()
+            prev_parents = ",".join(file_data.get("parents"))
+            self.s.files().update(fileId=file_id, addParents=dest_id, removeParents=prev_parents).execute()
+
 
 def main():
     dm = DriveManager()
-    print("Available commands: ls, cd, rm <file> <file> ..")
+    print("Available commands: ls, cd <directory>, rm <file> <file> .., mv <file> <file> .. <directory>")
     while True:
         try:
             line = input(f"{bcolors.OKBLUE}{dm.curr_path()}{bcolors.ENDC}$ ")
@@ -133,8 +162,9 @@ def main():
                         if len(arr) > 1:
                             dm.cd(arr[1])
                     case "rm":
-                        if len(arr) > 1:
-                            dm.rm(arr[1:])
+                        dm.rm(arr[1:])
+                    case "mv":
+                        dm.mv(arr[1:])
             except HttpError as e:
                 print(e.reason)
         except EOFError:
