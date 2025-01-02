@@ -23,9 +23,5 @@ document.addEventListener('DOMContentLoaded', () => {
             preview.style.display = 'none';
             overlay.style.display = 'none';
         });
-
-        // Preload the image
-        const preloadImg = new Image();
-        preloadImg.src = link.dataset.preview;
     });
 });
