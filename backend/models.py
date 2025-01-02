@@ -140,7 +140,7 @@ class Member(models.Model):
 
     @property
     def name(self):
-        return f"{self.first_name if self.first_name else ''} {self.last_name if self.last_name else ''}".strip()
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()
 
     def __str__(self):
         return self.name
@@ -159,7 +159,7 @@ class Family(models.Model):
         Calculate the total points of the family
         """
         result = self.photo_submissions.aggregate(models.Sum('score'))['score__sum']
-        return (result if result else 0) + self.points_adjustment
+        return (result or 0) + self.points_adjustment
 
     def __str__(self):
         return self.fam_name
@@ -188,7 +188,7 @@ class PhotoSubmission(CachedImageModel):
         Calculate the score of the photo submission.
         @property is not used here to avoid unnecessary computation when calculating total points of each fam
         """
-        if not self.score is None: # do not recalculate the score if field is already filled
+        if self.score is not None: # do not recalculate the score if field is already filled
             return
         self.score = 0
         match self.description:
@@ -202,7 +202,7 @@ class PhotoSubmission(CachedImageModel):
                 self.score = (self.number_of_people-1) * 5 + 10
             case "crossover":
                 self.score = (self.number_of_people-1) * 5 + 30
-                        
+
 
     def save(self, *args, **kwargs):
         """
