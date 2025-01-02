@@ -40,7 +40,6 @@ function preloadImg(link) {
     preloadImg.className = 'preview-image';
     preloadImg.id = link.dataset.preview;
     preloadImg.src = link.dataset.preview;
-    preloadImg.style.display = 'none';
     document.body.appendChild(preloadImg);
     return preloadImg;
 }

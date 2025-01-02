@@ -104,10 +104,10 @@ class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
             "backend/hoverImage.js"
         ]
         css = {
-            "screen": ["backend/hover-image.css"]
+            "screen": ["backend/hoverImage.css"]
         }
 
-    list_display = ('id', 'date_uploaded', image_preview, 'member', 'family', 'description', 'number_of_people','score', 'vetted')
+    list_display = ('id', 'date_uploaded', image_preview, 'member', 'family', 'description', 'number_of_people', 'score', 'vetted')
     list_filter = ('family', 'vetted', 'description')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
