@@ -3,6 +3,20 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from .. import models as m
 
 
+class ModdedFilteredSelectMultiple(FilteredSelectMultiple):
+    """
+    Modified widget for the family form. Fixes problem with the members label being after the widget.
+    Changed 1 line inside the static js file...
+    """
+    class Media:
+        extend = False
+        js = [
+            "admin/js/core.js",
+            "admin/js/SelectBox.js",
+            "backend/SelectFilter3.js", # this is the custom js file
+        ]
+
+
 class FamilyForm(forms.ModelForm):
     """
     Custom form for the Family model to allow for the selection of members
@@ -11,10 +25,10 @@ class FamilyForm(forms.ModelForm):
     members = forms.ModelMultipleChoiceField(
         queryset=m.Member.objects.all(),
         required=False,
-        widget=FilteredSelectMultiple(
+        widget=ModdedFilteredSelectMultiple(
             verbose_name='Members',
             is_stacked=False
-        )
+        ),
     )
 
     class Meta:

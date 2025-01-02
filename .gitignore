@@ -11,4 +11,4 @@ venv
 **/__pycache__/
 
 # Static files
-static/
+/static/

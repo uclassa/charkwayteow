@@ -15,6 +15,16 @@ def show_image_url(obj):
     return "No image"
 
 
+@admin.display(description="Image preview")
+def image_preview(obj):
+    """
+    Function to display the image as a hover preview
+    """
+    if obj.image_url:
+        return format_html('<a href="javascript:void(0)" class="hover-preview" data-preview="{url}">image</a>', url=obj.image_url)
+    return "No image"
+
+
 class ImageFieldReorderedAdmin(admin.ModelAdmin):
     """
     Base admin class for the Event and Member models.
@@ -89,7 +99,15 @@ class PhotoSubmissionAdmin(ImportExportMixin, ImageFieldReorderedAdmin):
     """
     Admin class for the PhotoSubmission model.
     """
-    list_display = ('id', 'date_uploaded', show_image_url, 'member', 'family', 'description', 'number_of_people','score', 'vetted')
+    class Media:
+        js = [
+            "backend/hoverImage.js"
+        ]
+        css = {
+            "screen": ["backend/hover-image.css"]
+        }
+
+    list_display = ('id', 'date_uploaded', image_preview, 'member', 'family', 'description', 'number_of_people','score', 'vetted')
     list_filter = ('family', 'vetted', 'description')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
