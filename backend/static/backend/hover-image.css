@@ -1,7 +1,7 @@
 .preview-image {
     display: none;
     position: fixed;
-    width: 80%;
+    width: auto;
     height: auto;
     top: 50%;
     left: 50%;
@@ -12,6 +12,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     z-index: 1000;
     max-height: 90vh;
+    max-width: 90vw;
     object-fit: contain;
 }
 
