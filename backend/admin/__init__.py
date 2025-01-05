@@ -3,7 +3,10 @@ from django.utils.html import format_html
 from import_export.admin import ImportExportMixin, ImportMixin, ExportActionMixin
 from .. import models as m
 from . import resources as r, forms as f
+from gdstorage.storage import GoogleDriveStorage
+from django.conf import settings
 
+gd_storage = GoogleDriveStorage()
 
 @admin.display(description="Link to image")
 def show_image_url(obj):
@@ -53,6 +56,20 @@ class EventAdmin(ImportMixin, ExportActionMixin, ImageFieldReorderedAdmin):
     list_display = ('title', 'start_date', 'end_date', 'venue')
     readonly_fields = (show_image_url,)
     exclude = ('image_id',)
+
+    def delete_queryset(self, request, queryset):
+        """
+        Overwrite regular delete method so that the relevant 
+        gdrive folder would be deleted upon deletion of the event
+        """
+        for obj in queryset:
+            obj.delete()
+
+            # delete the relevant g drive folder after deleting the object
+            start_date_string = obj.start_date.strftime('%Y%m%d')
+            event_folder_name = f'{settings.GOOGLE_DRIVE_STORAGE_MEDIA_ROOT}/{settings.GOOGLE_DRIVE_PHOTODUMP_FOLDER}/{start_date_string}_{obj.title.replace(" ", "_")}'
+            
+            gd_storage.delete(event_folder_name)
 
 
 @admin.action(description="Mark selected members as inactive")
