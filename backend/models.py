@@ -237,12 +237,12 @@ class ExcoMember(models.Model):
     Model for exco members
     """
     id = models.BigIntegerField(primary_key=True)
-    name = models.CharField(max_length=30)
-    role = models.CharField(max_length=30)
-    year = models.CharField(max_length=30)
-    major = models.CharField(max_length=30)
-    photo_id = models.CharField(max_length=30, blank=True, null=True)
-    alt_photo_id = models.CharField(max_length=30, blank=True, null=True)
+    name = models.CharField()
+    role = models.CharField()
+    year = models.CharField()
+    major = models.CharField()
+    photo_id = models.CharField(blank=True, null=True)
+    alt_photo_id = models.CharField(blank=True, null=True)
 
     @property
     def photo(self):
