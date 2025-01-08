@@ -15,7 +15,6 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """
     Permission class to allow read-only access to non-admins
     """
-
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -30,7 +29,6 @@ class HasAPIAccess(permissions.BasePermission):
     Key needs to be regenerated manually if compromised,
     server currently does not generate or store its own keys.
     """
-
     keyword = "api-key"
 
     def get_key(self, request) -> Optional[str]:
@@ -59,7 +57,6 @@ class EventViewSetPagination(PageNumberPagination):
     """
     Pagination class to support pagination for telebot's /get_event_photodump command
     """
-
     page_size = 4
     page_size_query_param = "page_size"
     max_page_size = 5
@@ -71,14 +68,12 @@ class EventViewSet(viewsets.ModelViewSet):
     If an api key is not provided, uses the EventPublicSerializer and forbids unsafe methods. (this is for the website)
     If an api key is provided and is valid, uses the EventAPISerializer instead. (this is for the telebot)
     """
-
     queryset = m.Event.objects.filter(visible=True)
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = s.EventPublicSerializer
     filter_backends = [filters.OrderingFilter]
     ordering = 'start_date'
     pagination_class = EventViewSetPagination
-    
 
     def get_permissions(self):
         if self.request.META.get("HTTP_AUTHORIZATION", None):
@@ -114,20 +109,18 @@ class FamilyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Family viewset. Leaderboard only
     """
-
     queryset = m.Family.objects.all()
     serializer_class = s.FamilySerializer
     permission_classes = [HasAPIAccess]
 
 
-class MemberUsernameViewSet(
-    viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.UpdateModelMixin
-):
+class MemberUsernameViewSet(viewsets.GenericViewSet,
+                            mixins.RetrieveModelMixin,
+                            mixins.UpdateModelMixin):
     """
     Member viewset for telebot. Lookup using telegram handle.
     Case insensitive to accommodate for data entry inconsistencies.
     """
-
     queryset = m.Member.objects.all()
     serializer_class = s.MemberSerializer
     permission_classes = [HasAPIAccess]
@@ -138,7 +131,6 @@ class MemberIDViewset(MemberUsernameViewSet):
     """
     Member viewset for telebot. Lookup using telegram id.
     """
-
     lookup_field = "telegram_id"
 
 
@@ -146,7 +138,6 @@ class PhotoSubmissionViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """
     Photo submission viewset for telebot.
     """
-
     queryset = m.PhotoSubmission.objects.all()
     serializer_class = s.PhotoSubmissionSerializer
     permission_classes = [HasAPIAccess]
@@ -156,7 +147,15 @@ class GroupChatViewSet(viewsets.ModelViewSet):
     """
     Group chat viewset for telebot.
     """
-
     queryset = m.GroupChat.objects.all()
     serializer_class = s.GroupChatSerializer
     permission_classes = [HasAPIAccess]
+
+
+class ExcoViewSet(viewsets.ModelViewSet):
+    """
+    Viewset for exco members
+    """
+    queryset = m.ExcoMember.objects.all()
+    serializer_class = s.ExcoSerializer
+    permission_classes = [IsAdminOrReadOnly]

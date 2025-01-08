@@ -9,6 +9,7 @@ router.register(r"members/u", v.MemberUsernameViewSet, r"member-detail-username"
 router.register(r"members/i", v.MemberIDViewset, r"member-detail-id")
 router.register(r"submissions", v.PhotoSubmissionViewSet)
 router.register(r"chats", v.GroupChatViewSet)
+router.register(r"exco", v.ExcoViewSet)
 
 urlpatterns = [
     path("", include(router.urls))

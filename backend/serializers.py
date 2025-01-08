@@ -71,3 +71,12 @@ class GroupChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.GroupChat
         fields = '__all__'
+
+
+class ExcoSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the exco member model
+    """
+    class Meta:
+        model = m.ExcoMember
+        fields = ("name", "role", "year", "major", "photo", "alt_photo", "alt")

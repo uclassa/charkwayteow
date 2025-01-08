@@ -38,6 +38,10 @@ def get_upload_path(instance, filename):
     """
     return f"{instance.__class__.__name__.lower()}_images/{filename}"
 
+
+def img_url_from_id(id):
+    return f"https://lh3.googleusercontent.com/u/0/d/{id}" if id else None
+
 ###############################
 ##  Model class definitions  ##
 ###############################
@@ -54,9 +58,7 @@ class CachedImageModel(models.Model):
 
     @property
     def image_url(self):
-        if self.image_id is None:
-            return None
-        return f"https://lh3.googleusercontent.com/u/0/d/{self.image_id}"
+        return img_url_from_id(self.image_id)
 
     def save(self, *args, **kwargs):
         """
@@ -228,3 +230,28 @@ class GroupChat(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ExcoMember(models.Model):
+    """
+    Model for exco members
+    """
+    id = models.BigIntegerField(primary_key=True)
+    name = models.CharField(max_length=30)
+    role = models.CharField(max_length=30)
+    year = models.CharField(max_length=30)
+    major = models.CharField(max_length=30)
+    photo_id = models.CharField(max_length=30, blank=True, null=True)
+    alt_photo_id = models.CharField(max_length=30, blank=True, null=True)
+
+    @property
+    def photo(self):
+        return img_url_from_id(self.photo_id)
+    
+    @property
+    def alt_photo(self):
+        return img_url_from_id(self.alt_photo_id)
+
+    @property
+    def alt(self):
+        return f"Photo of {self.name}"

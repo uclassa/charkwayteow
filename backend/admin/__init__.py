@@ -120,3 +120,11 @@ class GroupChatAdmin(admin.ModelAdmin):
     Admin class for the GroupChat model.
     """
     list_display = ('title', 'id')
+
+
+@admin.register(m.ExcoMember)
+class ExcoMemberAdmin(admin.ModelAdmin):
+    """
+    Admin class for the ExcoMember model
+    """
+    list_display = ('id', 'name', 'role', 'year', 'major')
