@@ -57,9 +57,9 @@ class EventViewSetPagination(PageNumberPagination):
     """
     Pagination class to support pagination for telebot's /get_event_photodump command
     """
-    page_size = 4
+    page_size = 20
     page_size_query_param = "page_size"
-    max_page_size = 5
+    max_page_size = 100
 
 
 class EventViewSet(viewsets.ModelViewSet):
