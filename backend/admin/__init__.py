@@ -123,7 +123,7 @@ class GroupChatAdmin(admin.ModelAdmin):
 
 
 @admin.register(m.ExcoMember)
-class ExcoMemberAdmin(admin.ModelAdmin):
+class ExcoMemberAdmin(admin.ModelAdmin, ImportExportMixin):
     """
     Admin class for the ExcoMember model
     """
