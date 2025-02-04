@@ -156,6 +156,6 @@ class ExcoViewSet(viewsets.ModelViewSet):
     """
     Viewset for exco members
     """
-    queryset = m.ExcoMember.objects.all()
+    queryset = m.ExcoMember.objects.order_by("id")
     serializer_class = s.ExcoSerializer
     permission_classes = [IsAdminOrReadOnly]
