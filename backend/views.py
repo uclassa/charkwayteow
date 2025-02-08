@@ -72,7 +72,7 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = s.EventPublicSerializer
     filter_backends = [filters.OrderingFilter]
-    ordering = 'start_date'
+    ordering = '-start_date'
     pagination_class = EventViewSetPagination
 
     def get_permissions(self):
