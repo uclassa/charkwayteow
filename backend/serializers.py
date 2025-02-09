@@ -79,4 +79,4 @@ class ExcoSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = m.ExcoMember
-        fields = ("name", "role", "year", "major", "photo", "alt_photo", "alt")
+        fields = ("id", "name", "role", "year", "major", "photo", "alt_photo", "alt")
