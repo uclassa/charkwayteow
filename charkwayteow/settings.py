@@ -14,7 +14,8 @@ from pathlib import Path
 import environ
 import dj_database_url
 env = environ.Env(
-    DEBUG=(bool, False)
+    DEBUG=(bool, False),
+    OAUTH_CALLBACK_URL=(str, "http://localhost:5173")
 )
 environ.Env.read_env()
 
@@ -53,6 +54,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'dj_rest_auth.registration',
     # 'django_cleanup.apps.CleanupConfig',
 ]
 
@@ -66,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'charkwayteow.urls'
@@ -119,6 +126,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+OAUTH_CALLBACK_URL = env("OAUTH_CALLBACK_URL")
+
+REST_AUTH = {
+    'TOKEN_MODEL': None
+}
+
 CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS').split(',')
 
 # Internationalization
@@ -135,8 +148,8 @@ USE_TZ = True
 REST_FRAMEWORK = {}
 if not DEBUG:
     REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = (
-            "rest_framework.renderers.JSONRenderer",
-        )
+        "rest_framework.renderers.JSONRenderer",
+    )
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

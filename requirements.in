@@ -5,6 +5,7 @@ django-environ
 django-googledrive-storage
 django-import-export
 djangorestframework
+dj-rest-auth[with_social]
 pillow
 psycopg[binary,pool]
 tablib[xlsx] # to allow importing and exporting of xlsx files

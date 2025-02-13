@@ -1,56 +1,13 @@
-from typing import Optional
-from rest_framework import viewsets, permissions, mixins, filters
-from . import serializers as s, models as m
+from rest_framework import viewsets, mixins, filters
+from backend import serializers as s, models as m
+from . import permissions as p
 from rest_framework.pagination import PageNumberPagination
 from datetime import datetime, timedelta
 from django.conf import settings
 from zoneinfo import ZoneInfo
-
-import environ
-
-env = environ.Env(API_KEY=(str, None))
-
-
-class IsAdminOrReadOnly(permissions.BasePermission):
-    """
-    Permission class to allow read-only access to non-admins
-    """
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        return request.user.is_staff
-
-
-class HasAPIAccess(permissions.BasePermission):
-    """
-    Permission class for sensitive endpoints,
-    to lock it behind an API key.
-    Key needs to be regenerated manually if compromised,
-    server currently does not generate or store its own keys.
-    """
-    keyword = "api-key"
-
-    def get_key(self, request) -> Optional[str]:
-        """
-        Get the API key from the request, if it exists
-        """
-        authorization = request.META.get("HTTP_AUTHORIZATION", "")
-
-        if not authorization:
-            return None
-
-        keyword, found, key = authorization.partition(" ")
-        if not found:
-            return None
-
-        if keyword.lower() != self.keyword.lower():
-            return None
-
-        return key
-
-    def has_permission(self, request, view):
-        return self.get_key(request) == env("API_KEY")
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView, SocialConnectView
 
 
 class EventViewSetPagination(PageNumberPagination):
@@ -69,7 +26,7 @@ class EventViewSet(viewsets.ModelViewSet):
     If an api key is provided and is valid, uses the EventAPISerializer instead. (this is for the telebot)
     """
     queryset = m.Event.objects.filter(visible=True)
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [p.IsAdminOrReadOnly]
     serializer_class = s.EventPublicSerializer
     filter_backends = [filters.OrderingFilter]
     ordering = '-start_date'
@@ -78,7 +35,7 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.META.get("HTTP_AUTHORIZATION", None):
             # If the request has an auth header, we assume it wants to use the unsafe endpoint.
-            return [HasAPIAccess()]
+            return [p.HasAPIAccess()]
 
         return super().get_permissions()
 
@@ -87,17 +44,18 @@ class EventViewSet(viewsets.ModelViewSet):
             return s.EventAPISerializer
 
         return super().get_serializer_class()
-    
+
     # conditionally paginate the queryset, if the unsafe endpoint is used
     def paginate_queryset(self, queryset):
         if self.request.META.get("HTTP_AUTHORIZATION", None):
             return super().paginate_queryset(queryset)
         return None
-    
+
     # only return events that have occured in the past year if the unsafe endpoint is used
     def get_queryset(self):
         if self.request.META.get("HTTP_AUTHORIZATION", None):
-            one_year_ago = datetime.now(ZoneInfo(settings.TIME_ZONE)) - timedelta(days=365)
+            one_year_ago = datetime.now(
+                ZoneInfo(settings.TIME_ZONE)) - timedelta(days=365)
             today = datetime.now(ZoneInfo(settings.TIME_ZONE))
 
             # filtering for events that happend less than a year ago, since there cannot be photos for an event that has not happened yet
@@ -111,7 +69,7 @@ class FamilyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     queryset = m.Family.objects.all()
     serializer_class = s.FamilySerializer
-    permission_classes = [HasAPIAccess]
+    permission_classes = [p.HasAPIAccess]
 
 
 class MemberUsernameViewSet(viewsets.GenericViewSet,
@@ -123,7 +81,7 @@ class MemberUsernameViewSet(viewsets.GenericViewSet,
     """
     queryset = m.Member.objects.all()
     serializer_class = s.MemberSerializer
-    permission_classes = [HasAPIAccess]
+    permission_classes = [p.HasAPIAccess]
     lookup_field = "telegram_username__iexact"
 
 
@@ -140,7 +98,7 @@ class PhotoSubmissionViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """
     queryset = m.PhotoSubmission.objects.all()
     serializer_class = s.PhotoSubmissionSerializer
-    permission_classes = [HasAPIAccess]
+    permission_classes = [p.HasAPIAccess]
 
 
 class GroupChatViewSet(viewsets.ModelViewSet):
@@ -149,7 +107,7 @@ class GroupChatViewSet(viewsets.ModelViewSet):
     """
     queryset = m.GroupChat.objects.all()
     serializer_class = s.GroupChatSerializer
-    permission_classes = [HasAPIAccess]
+    permission_classes = [p.HasAPIAccess]
 
 
 class ExcoViewSet(viewsets.ModelViewSet):
@@ -158,4 +116,38 @@ class ExcoViewSet(viewsets.ModelViewSet):
     """
     queryset = m.ExcoMember.objects.order_by("id")
     serializer_class = s.ExcoSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [p.IsAdminOrReadOnly]
+
+
+class CompatibleOAuth2Client(OAuth2Client):
+    """
+    Workaround for dj-rest-auth incompatibility, omits the scope field from the constructor call
+    """
+
+    def __init__(
+        self,
+        request,
+        consumer_key,
+        consumer_secret,
+        access_token_method,
+        access_token_url,
+        callback_url,
+        scope,
+        scope_delimiter=" ",
+        headers=None,
+        basic_auth=False,
+    ):
+        super().__init__(request, consumer_key, consumer_secret, access_token_method,
+                         access_token_url, callback_url, scope_delimiter, headers, basic_auth)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = settings.OAUTH_CALLBACK_URL
+    client_class = CompatibleOAuth2Client
+
+
+class GoogleConnect(SocialConnectView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = settings.OAUTH_CALLBACK_URL
+    client_class = CompatibleOAuth2Client
