@@ -5,8 +5,10 @@ from rest_framework.pagination import PageNumberPagination
 from datetime import datetime, timedelta
 from django.conf import settings
 from zoneinfo import ZoneInfo
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter, LoginByTokenView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.helpers import complete_social_login
+from allauth.account.utils import get_next_redirect_url
 from dj_rest_auth.registration.views import SocialLoginView, SocialConnectView
 
 
@@ -151,3 +153,17 @@ class GoogleConnect(SocialConnectView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = settings.OAUTH_CALLBACK_URL
     client_class = CompatibleOAuth2Client
+
+
+class GoogleLoginByTokenView(LoginByTokenView):
+    """
+    Overridden LoginByTokenView to obey the redirect url
+    """
+
+    def post(self, request, *args, **kwargs):
+        self.check_csrf(request)
+
+        credential = request.POST.get("credential")
+        login = self.provider.verify_token(request, {"id_token": credential})
+        login.state["next"] = get_next_redirect_url(request)
+        return complete_social_login(request, login)

@@ -11,13 +11,17 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 '''
 
 from pathlib import Path
+import os
 import environ
 import dj_database_url
 env = environ.Env(
     DEBUG=(bool, False),
-    OAUTH_CALLBACK_URL=(str, "http://localhost:5173")
+    OAUTH_CALLBACK_URL=(str, "http://localhost:5173"),
+    RAILWAY_PUBLIC_DOMAIN=(str, "")
 )
 environ.Env.read_env()
+os.environ["LOGIN_URI"] = f"https://{domain}" if (
+    domain := env("RAILWAY_PUBLIC_DOMAIN")) else "http://localhost:8000"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,12 +58,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'django_cleanup.apps.CleanupConfig',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'dj_rest_auth.registration',
-    # 'django_cleanup.apps.CleanupConfig',
+    'allauth.socialaccount.providers.google'
 ]
 
 MIDDLEWARE = [
