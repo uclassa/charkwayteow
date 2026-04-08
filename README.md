@@ -39,22 +39,21 @@ postgresql://cktadmin:i12eatckt@localhost:5432/charkwayteow
 ```
 
 ### Setting up the virtual environment
-Django documentation states that you should use the newest version of python. Make sure python and pip are installed using pyenv, conda or any other method. We can use venv to set up our virtual environment, so that any packages we install are isolated to this project. Create the virtual environment and activate it, then install the required packages.
+Django documentation states that you should use the newest version of python. Make sure python and pip are installed using pyenv, conda or any other method. `uv` is the preferred package manager we use. Install it, then setup and activate the virtual environment.
 ```
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
+uv sync
+source .venv/bin/activate
 ```
 
 Lastly, if you just created the database, it doesn't have the tables that are required by the django server. Django manages the database for you so instead of creating the tables using SQL statements, simply run the following command to execute the SQL:
 ```
-python3 manage.py migrate
+python manage.py migrate
 ```
 Next, we need to create a superuser, a user who has admin privileges on the backend server:
 ```
-python3 manage.py createsuperuser
+python manage.py createsuperuser
 ```
 Finally, you can run the development server and test it out!
 ```
-python3 manage.py runserver
+python manage.py runserver
 ```
