@@ -13,6 +13,7 @@ dependencies = [
     "django-googledrive-storage>=1.6.0",
     "django-import-export>=4.3.7",
     "djangorestframework>=3.16.0",
+    "gunicorn>=26.1.0",
     "pillow>=11.2.1",
     "psycopg[binary,pool]>=3.2.9",
     "tablib[xlsx]>=3.8.0",
