@@ -1,0 +1,6 @@
+# Nixpacks auto-detects uv.lock and installs uv with `pip install uv==$NIXPACKS_UV_VERSION`,
+# but does not populate that variable itself, producing an invalid bare `uv==` and a failed build.
+# Pinning it here applies to every environment and survives Railway workspace changes.
+
+[variables]
+NIXPACKS_UV_VERSION = "0.12.5"
